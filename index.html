@@ -1,262 +1,644 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>헤이청주 - 클릭 통계 관리자 대시보드</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>헤이청주 관리자 대시보드 - 클릭 통계</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet" />
     <style>
         :root {
-            --primary-color: #4CAF50;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --border-color: #e0e0e0;
+            --bg: #f5f7fb;
+            --card: #ffffff;
+            --text: #222;
+            --sub: #666;
+            --line: #e5e7eb;
+            --primary: #2e7d32;
+            --primary-soft: #e8f5e9;
+            --danger: #d32f2f;
         }
-        body { 
-            font-family: 'Noto Sans KR', sans-serif; 
-            background-color: var(--bg-color); 
-            color: var(--text-main); 
-            margin: 0; 
-            padding: 20px; 
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+            background: var(--bg);
+            color: var(--text);
         }
-        .dashboard-container { 
-            max-width: 900px; 
-            margin: 0 auto; 
-            background-color: var(--card-bg); 
-            padding: 30px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+
+        .wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 16px 48px;
         }
-        h1 { 
-            text-align: center; 
-            color: var(--primary-color); 
-            margin-top: 0; 
+
+        .topbar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
         }
-        .description { 
-            text-align: center; 
-            color: #666; 
-            font-size: 0.95rem; 
-            margin-bottom: 30px; 
+
+        h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 800;
         }
-        .status-box {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: 500;
-            margin-bottom: 20px;
+
+        .sub {
+            color: var(--sub);
+            font-size: 0.92rem;
+            margin-top: 6px;
         }
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 10px; 
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
-        th, td { 
-            padding: 12px 15px; 
-            border-bottom: 1px solid var(--border-color); 
-            text-align: left; 
+
+        .btn {
+            border: 1px solid var(--line);
+            background: #fff;
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .btn.primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .controls, .summary {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .control label {
+            display: block;
+            font-size: 0.82rem;
+            color: var(--sub);
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .control input, .control select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: #fff;
+            font-family: inherit;
             font-size: 0.95rem;
         }
-        th { 
-            background-color: #fafafa; 
-            color: #555; 
-            font-weight: 700;
-            border-top: 2px solid var(--primary-color);
-            border-bottom: 2px solid var(--border-color);
-        }
-        tr:hover { background-color: #f9f9f9; }
-        
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
-        
-        .badge { 
-            display: inline-block;
-            padding: 4px 10px; 
-            border-radius: 20px; 
-            font-size: 0.8rem; 
-            font-weight: bold;
-            color: white; 
-            min-width: 30px;
-            text-align: center;
-        }
-        .badge-detail { background-color: #3498db; }
-        .badge-apply { background-color: #f39c12; }
-        .badge-total { background-color: var(--primary-color); font-size: 0.9rem;}
 
-        .rank {
-            font-weight: bold;
-            color: #888;
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
         }
-        .rank-top {
-            color: #e74c3c;
-            font-size: 1.1rem;
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .stat-label {
+            color: var(--sub);
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        .table-wrap {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table-head {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--line);
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .table-scroll {
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1050px;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+            font-size: 0.92rem;
+        }
+
+        th {
+            background: #fafafa;
+            color: #444;
+            font-size: 0.84rem;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        tr:hover td {
+            background: #fcfcfc;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+
+        .muted { color: var(--sub); }
+        .danger { color: var(--danger); }
+
+        .loading, .empty {
+            padding: 28px 16px;
+            text-align: center;
+            color: var(--sub);
+        }
+
+        .title-cell {
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .small {
+            font-size: 0.8rem;
+            color: var(--sub);
+            margin-top: 4px;
+            word-break: break-all;
+        }
+
+        @media (max-width: 900px) {
+            .controls-grid,
+            .cards {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .controls-grid,
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.3rem;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="wrap">
+        <div class="topbar">
+            <div>
+                <h1>헤이청주 관리자 대시보드</h1>
+                <div class="sub" id="last-updated">불러오는 중...</div>
+            </div>
+            <div class="actions">
+                <button class="btn" id="btn-export">CSV 내보내기</button>
+                <button class="btn primary" id="btn-refresh">새로고침</button>
+            </div>
+        </div>
 
-<div class="dashboard-container">
-    <h1>📊 이벤트 클릭 통계 대시보드</h1>
-    <p class="description">사용자들이 누른 '상세보기' 및 '신청하기' 버튼의 누적 클릭수를 확인합니다.<br>(클릭 수가 1 이상인 행사만 표시됩니다)</p>
+        <section class="controls">
+            <div class="controls-grid">
+                <div class="control">
+                    <label for="searchInput">검색</label>
+                    <input id="searchInput" type="text" placeholder="행사명, 장소, 지역 검색" />
+                </div>
 
-    <div id="status-message" class="status-box">
-        데이터를 불러오는 중입니다. 잠시만 기다려주세요... ⏳<br>
-        <small>(행사 목록과 통계 데이터를 매칭하는 데 몇 초 정도 소요될 수 있습니다)</small>
+                <div class="control">
+                    <label for="typeFilter">탭 유형</label>
+                    <select id="typeFilter">
+                        <option value="">전체</option>
+                        <option value="ongoing">사전예약 중</option>
+                        <option value="always">상시/현장접수</option>
+                        <option value="affiliate">제휴/이벤트</option>
+                    </select>
+                </div>
+
+                <div class="control">
+                    <label for="sortFilter">정렬</label>
+                    <select id="sortFilter">
+                        <option value="total_desc">총 클릭수 높은순</option>
+                        <option value="apply_desc">신청하기 높은순</option>
+                        <option value="detail_desc">상세보기 높은순</option>
+                        <option value="title_asc">행사명 가나다순</option>
+                    </select>
+                </div>
+
+                <div class="control">
+                    <label for="conditionFilter">조건</label>
+                    <select id="conditionFilter">
+                        <option value="">전체</option>
+                        <option value="clicked">클릭 있는 행사만</option>
+                        <option value="unclicked">클릭 0인 행사만</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section class="summary">
+            <div class="cards">
+                <div class="stat-card">
+                    <div class="stat-label">전체 행사 수</div>
+                    <div class="stat-value" id="stat-events">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">상세보기 총 클릭</div>
+                    <div class="stat-value" id="stat-detail">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">신청하기 총 클릭</div>
+                    <div class="stat-value" id="stat-apply">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">전체 총 클릭</div>
+                    <div class="stat-value" id="stat-total">0</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="table-wrap">
+            <div class="table-head">
+                <span>행사별 클릭 통계</span>
+                <span class="muted" id="resultCount">0건</span>
+            </div>
+
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>행사명</th>
+                            <th>유형</th>
+                            <th>지역</th>
+                            <th>장소</th>
+                            <th>상세보기</th>
+                            <th>신청하기</th>
+                            <th>총 클릭</th>
+                            <th>카운터 키</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="8" class="loading">데이터를 불러오는 중입니다...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
-    <table id="stats-table" style="display: none;">
-        <thead>
-            <tr>
-                <th class="text-center" width="60">순위</th>
-                <th>행사명</th>
-                <th class="text-right" width="120">🔍 상세보기</th>
-                <th class="text-right" width="120">🔗 신청하기</th>
-                <th class="text-right" width="120">합계 (인기도)</th>
-            </tr>
-        </thead>
-        <tbody id="table-body">
-            </tbody>
-    </table>
-</div>
-
 <script>
-    const namespace = 'heycheongju_clicks_v1';
-    // 메인 페이지와 동일한 구글 시트 주소
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQV-02F-qXwS6yLb_XScKqwYj1N0qImwofY2Pyj2tvwnW0i1tl995_BjOfaVHpayppk6YYhqpdLrpa9/pub?output=csv";
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQV-02F-qXwS6yLb_XScKqwYj1N0qImwofY2Pyj2tvwnW0i1tl995_BjOfaVHpayppk6YYhqpdLrpa9/pub?output=csv";
+    const CLICK_NAMESPACE = "heycheongju_clicks_v1";
 
-    // 원본 코드와 동일한 해시 생성 함수 (매우 중요: 이게 같아야 동일한 데이터를 불러옵니다)
+    let rawItems = [];
+    let viewItems = [];
+
+    function escapeHtml(str) {
+        return String(str || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
     function getHash(str) {
-        if (!str) return 'none'; 
+        if (!str) return "none";
         let hash = 0;
-        for (let i = 0; i < str.length; i++) { 
-            hash = ((hash << 5) - hash) + str.charCodeAt(i); 
-            hash = hash & hash; 
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            hash = hash & hash;
         }
-        return Math.abs(hash).toString(16); 
+        return Math.abs(hash).toString(16);
     }
 
-    // 메인 페이지와 동일한 CSV 파싱 함수
+    function buildEventKey(item) {
+        return [
+            item.title || "",
+            item.place || "",
+            item.loc || "",
+            item.applyStart || "",
+            item.applyEnd || "",
+            item.date || ""
+        ].join("|");
+    }
+
+    function buildCounterName(item, btnType) {
+        return `${getHash(buildEventKey(item))}_${btnType}`;
+    }
+
+    function formatType(type) {
+        if (type === "ongoing") return "사전예약 중";
+        if (type === "always") return "상시/현장접수";
+        if (type === "affiliate") return "제휴/이벤트";
+        return type || "-";
+    }
+
     function parseCSVToJSON(csv) {
-        const rows = []; let row = []; let curr = ''; let insideQuotes = false;
+        const rows = [];
+        let row = [];
+        let curr = "";
+        let insideQuotes = false;
+
         for (let i = 0; i < csv.length; i++) {
-            const char = csv[i]; const nextChar = csv[i + 1];
-            if (char === '"' && insideQuotes && nextChar === '"') { curr += '"'; i++; } 
-            else if (char === '"') { insideQuotes = !insideQuotes; } 
-            else if (char === ',' && !insideQuotes) { row.push(curr); curr = ''; } 
-            else if ((char === '\n' || (char === '\r' && nextChar === '\n')) && !insideQuotes) { row.push(curr); rows.push(row); row = []; curr = ''; if (char === '\r') i++; } 
-            else { curr += char; }
+            const char = csv[i];
+            const nextChar = csv[i + 1];
+
+            if (char === '"' && insideQuotes && nextChar === '"') {
+                curr += '"';
+                i++;
+            } else if (char === '"') {
+                insideQuotes = !insideQuotes;
+            } else if (char === "," && !insideQuotes) {
+                row.push(curr);
+                curr = "";
+            } else if ((char === "\n" || (char === "\r" && nextChar === "\n")) && !insideQuotes) {
+                row.push(curr);
+                rows.push(row);
+                row = [];
+                curr = "";
+                if (char === "\r") i++;
+            } else {
+                curr += char;
+            }
         }
-        if (curr !== '' || row.length > 0) { row.push(curr); rows.push(row); }
+
+        if (curr !== "" || row.length > 0) {
+            row.push(curr);
+            rows.push(row);
+        }
+
         if (rows.length < 2) return [];
-        const headers = rows[0].map(h => h.trim().replace(/[\r\n]+/g, '')); const data = [];
+
+        const headers = rows[0].map(h => h.trim().replace(/[\r\n]+/g, ""));
+        const data = [];
+
         for (let i = 1; i < rows.length; i++) {
-            if (rows[i].length === 1 && rows[i][0].trim() === '') continue; 
+            if (rows[i].length === 1 && rows[i][0].trim() === "") continue;
+
             const obj = {};
-            for (let j = 0; j < headers.length; j++) { if (headers[j]) obj[headers[j]] = rows[i][j] ? rows[i][j].trim().replace(/[\r\n]+$/, '') : ''; }
-            if (obj.type || obj.title) data.push(obj);
-        }
-        return data;
-    }
-
-    // 메인 실행 함수
-    async function initDashboard() {
-        try {
-            // 1. 구글 시트 데이터 가져오기
-            const response = await fetch(csvUrl + "&_t=" + new Date().getTime());
-            if (!response.ok) throw new Error("CSV 다운로드 실패");
-            const csvText = await response.text();
-            let eventData = parseCSVToJSON(csvText);
-
-            // 제목 기준으로 중복 제거 (같은 제목의 행사가 여러 번 측정되는 것 방지)
-            const uniqueEvents = new Map();
-            eventData.forEach(item => {
-                if (item.title && item.title.trim() !== '') {
-                    // 메인 페이지의 trackEventClick에서 사용한 따옴표 치환 로직 반영
-                    const trackTitle = item.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    uniqueEvents.set(trackTitle, { title: item.title, trackTitle: trackTitle });
-                }
-            });
-
-            const eventsToFetch = Array.from(uniqueEvents.values());
-            const resultsData = [];
-            const statusBox = document.getElementById('status-message');
-
-            // 2. 각 행사별로 클릭 통계 가져오기 (무료 API 부하 방지를 위해 순차적 호출)
-            for (let i = 0; i < eventsToFetch.length; i++) {
-                const item = eventsToFetch[i];
-                const hash = getHash(item.trackTitle);
-                
-                statusBox.innerHTML = `데이터 동기화 중... (${i + 1} / ${eventsToFetch.length}) ⏳`;
-
-                let detailCount = 0;
-                let applyCount = 0;
-
-                try {
-                    const resDetail = await fetch(`https://api.counterapi.dev/v1/${namespace}/${hash}_detail`);
-                    if (resDetail.ok) detailCount = (await resDetail.json()).count;
-                } catch (e) {} // 아직 클릭된 적이 없으면 404 에러가 나므로 무시
-
-                try {
-                    const resApply = await fetch(`https://api.counterapi.dev/v1/${namespace}/${hash}_apply`);
-                    if (resApply.ok) applyCount = (await resApply.json()).count;
-                } catch (e) {}
-
-                const total = detailCount + applyCount;
-                
-                // 클릭이 1번이라도 발생한 것만 목록에 추가
-                if (total > 0) {
-                    resultsData.push({
-                        title: item.title,
-                        detailCount: detailCount,
-                        applyCount: applyCount,
-                        totalCount: total
-                    });
+            for (let j = 0; j < headers.length; j++) {
+                if (headers[j]) {
+                    obj[headers[j]] = rows[i][j]
+                        ? rows[i][j].trim().replace(/[\r\n]+$/, "")
+                        : "";
                 }
             }
 
-            // 3. 총합 기준으로 내림차순(가장 인기있는 순) 정렬
-            resultsData.sort((a, b) => b.totalCount - a.totalCount);
+            if (obj.type || obj.title) data.push(obj);
+        }
 
-            // 4. 화면에 그리기
-            renderTable(resultsData);
+        return data;
+    }
 
-        } catch (error) {
-            document.getElementById('status-message').innerHTML = '데이터를 불러오는 중 오류가 발생했습니다. 새로고침 해주세요. 😥';
-            document.getElementById('status-message').style.color = 'red';
-            console.error(error);
+    async function getCounterValue(counterName) {
+        const url = `https://api.counterapi.dev/v1/${CLICK_NAMESPACE}/${counterName}`;
+
+        try {
+            const res = await fetch(url, { cache: "no-store" });
+            if (!res.ok) return 0;
+
+            const data = await res.json();
+
+            if (typeof data.count === "number") return data.count;
+            if (typeof data.value === "number") return data.value;
+            if (typeof data.data?.count === "number") return data.data.count;
+            if (typeof data.data?.value === "number") return data.data.value;
+
+            return 0;
+        } catch (e) {
+            console.error("카운터 조회 실패:", counterName, e);
+            return 0;
         }
     }
 
-    function renderTable(data) {
-        document.getElementById('status-message').style.display = 'none';
-        document.getElementById('stats-table').style.display = 'table';
-        const tbody = document.getElementById('table-body');
+    async function enrichItemsWithCounts(items) {
+        const concurrency = 8;
+        const result = [];
 
-        if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="padding: 30px;">아직 버튼이 클릭된 행사 데이터가 없습니다.</td></tr>';
+        for (let i = 0; i < items.length; i += concurrency) {
+            const chunk = items.slice(i, i + concurrency);
+
+            const chunkResults = await Promise.all(
+                chunk.map(async (item) => {
+                    const detailCounterName = buildCounterName(item, "detail");
+                    const applyCounterName = buildCounterName(item, "apply");
+
+                    const [detailCount, applyCount] = await Promise.all([
+                        getCounterValue(detailCounterName),
+                        getCounterValue(applyCounterName)
+                    ]);
+
+                    return {
+                        ...item,
+                        detailCounterName,
+                        applyCounterName,
+                        detailCount,
+                        applyCount,
+                        totalCount: detailCount + applyCount
+                    };
+                })
+            );
+
+            result.push(...chunkResults);
+        }
+
+        return result;
+    }
+
+    function renderSummary(rows) {
+        const detailSum = rows.reduce((sum, item) => sum + (item.detailCount || 0), 0);
+        const applySum = rows.reduce((sum, item) => sum + (item.applyCount || 0), 0);
+        const totalSum = rows.reduce((sum, item) => sum + (item.totalCount || 0), 0);
+
+        document.getElementById("stat-events").textContent = rows.length.toLocaleString("ko-KR");
+        document.getElementById("stat-detail").textContent = detailSum.toLocaleString("ko-KR");
+        document.getElementById("stat-apply").textContent = applySum.toLocaleString("ko-KR");
+        document.getElementById("stat-total").textContent = totalSum.toLocaleString("ko-KR");
+        document.getElementById("resultCount").textContent = `${rows.length.toLocaleString("ko-KR")}건`;
+    }
+
+    function renderTable(rows) {
+        const tbody = document.getElementById("tableBody");
+
+        if (!rows.length) {
+            tbody.innerHTML = `<tr><td colspan="8" class="empty">표시할 데이터가 없습니다.</td></tr>`;
             return;
         }
 
-        data.forEach((item, index) => {
-            const tr = document.createElement('tr');
-            const rankClass = index < 3 ? 'rank rank-top' : 'rank'; // 1~3위는 색상 강조
-            
-            tr.innerHTML = `
-                <td class="text-center ${rankClass}">${index + 1}</td>
-                <td style="font-weight: 500;">${item.title}</td>
-                <td class="text-right"><span class="badge badge-detail">${item.detailCount}</span></td>
-                <td class="text-right"><span class="badge badge-apply">${item.applyCount}</span></td>
-                <td class="text-right"><span class="badge badge-total">${item.totalCount}</span></td>
-            `;
-            tbody.appendChild(tr);
-        });
+        tbody.innerHTML = rows.map(item => `
+            <tr>
+                <td>
+                    <div class="title-cell">${escapeHtml(item.title || "-")}</div>
+                    <div class="small">${escapeHtml(item.date || "")}</div>
+                </td>
+                <td><span class="badge">${escapeHtml(formatType(item.type))}</span></td>
+                <td>${escapeHtml(item.loc || "-")}</td>
+                <td>${escapeHtml(item.place || "-")}</td>
+                <td>${(item.detailCount || 0).toLocaleString("ko-KR")}</td>
+                <td>${(item.applyCount || 0).toLocaleString("ko-KR")}</td>
+                <td><strong>${(item.totalCount || 0).toLocaleString("ko-KR")}</strong></td>
+                <td>
+                    <div class="small">detail: ${escapeHtml(item.detailCounterName)}</div>
+                    <div class="small">apply: ${escapeHtml(item.applyCounterName)}</div>
+                </td>
+            </tr>
+        `).join("");
     }
 
-    // 페이지 로드 시 실행
-    document.addEventListener('DOMContentLoaded', initDashboard);
-</script>
+    function applyFilters() {
+        const keyword = document.getElementById("searchInput").value.trim().toLowerCase();
+        const typeValue = document.getElementById("typeFilter").value;
+        const sortValue = document.getElementById("sortFilter").value;
+        const conditionValue = document.getElementById("conditionFilter").value;
 
+        let rows = [...rawItems];
+
+        rows = rows.filter(item => {
+            const matchKeyword =
+                !keyword ||
+                (item.title || "").toLowerCase().includes(keyword) ||
+                (item.place || "").toLowerCase().includes(keyword) ||
+                (item.loc || "").toLowerCase().includes(keyword);
+
+            const matchType = !typeValue || item.type === typeValue;
+
+            const matchCondition =
+                !conditionValue ||
+                (conditionValue === "clicked" && item.totalCount > 0) ||
+                (conditionValue === "unclicked" && item.totalCount === 0);
+
+            return matchKeyword && matchType && matchCondition;
+        });
+
+        rows.sort((a, b) => {
+            if (sortValue === "apply_desc") return b.applyCount - a.applyCount;
+            if (sortValue === "detail_desc") return b.detailCount - a.detailCount;
+            if (sortValue === "title_asc") return (a.title || "").localeCompare((b.title || ""), "ko");
+            return b.totalCount - a.totalCount;
+        });
+
+        viewItems = rows;
+        renderTable(rows);
+        renderSummary(rows);
+    }
+
+    function csvSafe(value) {
+        return `"${String(value || "").replace(/"/g, '""')}"`;
+    }
+
+    function exportCSV() {
+        const headers = [
+            "title",
+            "type",
+            "loc",
+            "place",
+            "detailCount",
+            "applyCount",
+            "totalCount",
+            "detailCounterName",
+            "applyCounterName"
+        ];
+
+        const lines = [
+            headers.join(","),
+            ...viewItems.map(item => [
+                csvSafe(item.title),
+                csvSafe(formatType(item.type)),
+                csvSafe(item.loc),
+                csvSafe(item.place),
+                item.detailCount || 0,
+                item.applyCount || 0,
+                item.totalCount || 0,
+                csvSafe(item.detailCounterName),
+                csvSafe(item.applyCounterName)
+            ].join(","))
+        ];
+
+        const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `heycheongju-click-dashboard-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    async function loadDashboard() {
+        const tbody = document.getElementById("tableBody");
+        tbody.innerHTML = `<tr><td colspan="8" class="loading">CSV와 카운터를 불러오는 중입니다...</td></tr>`;
+
+        try {
+            const res = await fetch(CSV_URL + "&_t=" + Date.now(), { cache: "no-store" });
+            if (!res.ok) throw new Error("CSV 불러오기 실패");
+
+            const csvText = await res.text();
+            const items = parseCSVToJSON(csvText);
+
+            rawItems = await enrichItemsWithCounts(items);
+            applyFilters();
+
+            document.getElementById("last-updated").textContent =
+                `마지막 새로고침: ${new Date().toLocaleString("ko-KR")}`;
+        } catch (e) {
+            console.error(e);
+            tbody.innerHTML = `<tr><td colspan="8" class="empty danger">대시보드 데이터를 불러오지 못했습니다.</td></tr>`;
+            document.getElementById("last-updated").textContent = "불러오기 실패";
+        }
+    }
+
+    document.getElementById("searchInput").addEventListener("input", applyFilters);
+    document.getElementById("typeFilter").addEventListener("change", applyFilters);
+    document.getElementById("sortFilter").addEventListener("change", applyFilters);
+    document.getElementById("conditionFilter").addEventListener("change", applyFilters);
+    document.getElementById("btn-refresh").addEventListener("click", loadDashboard);
+    document.getElementById("btn-export").addEventListener("click", exportCSV);
+
+    loadDashboard();
+</script>
 </body>
 </html>
