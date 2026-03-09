@@ -11,6 +11,7 @@
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         h1 { margin-top: 0; color: #4CAF50; font-size: 1.8rem; border-bottom: 2px solid #eee; padding-bottom: 15px; }
         .status { padding: 15px; background: #e8f5e9; color: #2e7d32; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background-color: #fafafa; font-weight: 700; color: #555; }
@@ -33,24 +34,22 @@
         <thead>
             <tr>
                 <th>행사명 (제목)</th>
-                <th>상세이미지 클릭</th>
+                <th>상세정보 클릭</th>
                 <th>신청하기 클릭</th>
                 <th>총 클릭 수</th>
             </tr>
         </thead>
-        <tbody></tbody>
+        <tbody>
+            </tbody>
     </table>
 </div>
 
 <script>
-    // 메인 사이트와 동일한 제목 정제 및 Hash 생성 로직
     function getHash(str) {
         if (!str) return 'none';
-        // 제목에서 공백과 특수문자를 제거하여 메인 사이트와 동일한 해시값 생성
-        const cleanStr = str.replace(/\s+/g, '').replace(/'/g, "\\'"); 
         let hash = 0;
-        for (let i = 0; i < cleanStr.length; i++) {
-            hash = ((hash << 5) - hash) + cleanStr.charCodeAt(i);
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
             hash = hash & hash;
         }
         return Math.abs(hash).toString(36);
@@ -66,6 +65,7 @@
             else { curr += char; }
         }
         if (curr !== '' || row.length > 0) { row.push(curr); rows.push(row); }
+        if (rows.length < 2) return [];
         const headers = rows[0].map(h => h.trim().replace(/[\r\n]+/g, '')); const data = [];
         for (let i = 1; i < rows.length; i++) {
             if (rows[i].length === 1 && rows[i][0].trim() === '') continue; const obj = {};
@@ -77,6 +77,8 @@
 
     async function loadStats() {
         const statusEl = document.getElementById('status');
+        const tbody = document.querySelector('#stats-table tbody');
+
         try {
             const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQV-02F-qXwS6yLb_XScKqwYj1N0qImwofY2Pyj2tvwnW0i1tl995_BjOfaVHpayppk6YYhqpdLrpa9/pub?output=csv";
             const response = await fetch(csvUrl + "&_t=" + Date.now());
@@ -85,35 +87,45 @@
 
             const statResults = [];
             const namespace = 'heycj_stats_v1';
+            let scanned = 0;
 
+            // 🌟 수정됨: 동시 요청(Promise.all)을 제거하고, 과부하를 막기 위해 하나씩 '순서대로' 묻습니다.
             for (const event of events) {
-                const title = event.title;
-                if(!title) continue;
-                const hash = getHash(title);
-                
-                let imgCount = 0;
+                const rawTitle = event.title;
+                if(!rawTitle) continue;
+
+                const hash = getHash(rawTitle);
+                let detailCount = 0;
                 let applyCount = 0;
 
                 try {
-                    const resImg = await fetch(`https://api.counterapi.dev/v1/${namespace}/evt_${hash}_detail`);
-                    if(resImg.ok) { const d = await resImg.json(); imgCount = d.count; }
-                    
+                    const resDetail = await fetch(`https://api.counterapi.dev/v1/${namespace}/evt_${hash}_detail`);
+                    if(resDetail.ok) { const d = await resDetail.json(); detailCount = d.count; }
+                } catch(e) {}
+                
+                try {
                     const resApply = await fetch(`https://api.counterapi.dev/v1/${namespace}/evt_${hash}_apply`);
                     if(resApply.ok) { const d = await resApply.json(); applyCount = d.count; }
                 } catch(e) {}
 
-                if(imgCount > 0 || applyCount > 0) {
-                    statResults.push({ title, imgCount, applyCount, total: imgCount + applyCount });
+                // 실시간 스캔 현황 업데이트
+                scanned++;
+                statusEl.innerText = `서버에서 통계를 차례대로 불러오는 중입니다... (${scanned} / ${events.length} 개 확인 완료) ⏳`;
+
+                if(detailCount > 0 || applyCount > 0) {
+                    statResults.push({ title: rawTitle, detailCount, applyCount, total: detailCount + applyCount });
                 }
+
+                // 🌟 중요: 서버가 차단하지 않도록 다음 항목 검사 전 아주 짧은 휴식(0.05초)을 부여
+                await new Promise(resolve => setTimeout(resolve, 50));
             }
 
+            // 모든 검사가 끝나면 정렬하고 화면에 출력
             statResults.sort((a, b) => b.total - a.total);
-            
-            const tbody = document.querySelector('#stats-table tbody');
-            tbody.innerHTML = '';
-            
+            tbody.innerHTML = "";
+
             if(statResults.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">아직 클릭 데이터가 없습니다. 본 사이트에서 버튼을 눌러보세요!</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">아직 버튼 클릭 데이터가 없습니다. 본 사이트에서 직접 클릭 테스트를 진행해 보세요!</td></tr>`;
                 statusEl.innerText = "조회 완료! (데이터 없음)";
                 return;
             }
@@ -122,7 +134,7 @@
                 tbody.innerHTML += `
                     <tr>
                         <td>${stat.title}</td>
-                        <td class="num">${stat.imgCount} 회</td>
+                        <td class="num">${stat.detailCount} 회</td>
                         <td class="num">${stat.applyCount} 회</td>
                         <td class="num" style="color:#d32f2f;">${stat.total} 회</td>
                     </tr>
@@ -136,22 +148,23 @@
                 data: {
                     labels: top10.map(s => s.title.length > 15 ? s.title.substring(0,15)+'...' : s.title),
                     datasets: [
-                        { label: '상세정보 클릭', data: top10.map(s => s.imgCount), backgroundColor: '#90CAF9' },
+                        { label: '상세정보 클릭', data: top10.map(s => s.detailCount), backgroundColor: '#90CAF9' },
                         { label: '신청하기 클릭', data: top10.map(s => s.applyCount), backgroundColor: '#4CAF50' }
                     ]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
-                    plugins: { title: { display: true, text: '상위 10개 인기 콘텐츠 통계' } }
+                    plugins: { title: { display: true, text: '상위 10개 인기 콘텐츠 통계 (총 클릭 합산)' } }
                 }
             });
 
-            statusEl.innerText = "데이터 로딩 완료!";
+            statusEl.innerText = `데이터 로딩 완료! (가장 클릭수가 많은 순서대로 정렬됨)`;
             statusEl.style.backgroundColor = "#e3f2fd";
             statusEl.style.color = "#1565c0";
 
         } catch (err) {
+            console.error(err);
             statusEl.innerText = "데이터 로드 중 에러가 발생했습니다.";
             statusEl.style.backgroundColor = "#ffebee";
             statusEl.style.color = "#c62828";
