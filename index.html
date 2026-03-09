@@ -71,29 +71,80 @@
             box-shadow: 0 4px 12px rgba(0, 176, 80, 0.2);
         }
 
-        .btn-refresh:active { transform: translateY(0); }
+        .btn-refresh:active {
+            transform: translateY(0);
+        }
         
-        .table-container { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-        th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        th { background-color: #F8F9FA; font-weight: 700; color: var(--text-muted); cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
+        /* 테이블 스타일링 */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 16px 20px; 
+            text-align: left; 
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th { 
+            background-color: #F8F9FA; 
+            font-weight: 700; 
+            color: var(--text-muted);
+            cursor: pointer; 
+            user-select: none;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+
         th:hover { background-color: #E9ECEF; color: var(--text-main); }
         tr:hover td { background-color: #F8F9FA; }
         
-        .sort-icon { display: inline-block; margin-left: 4px; font-size: 0.8rem; color: #ADB5BD; }
+        .sort-icon {
+            display: inline-block;
+            margin-left: 4px;
+            font-size: 0.8rem;
+            color: #ADB5BD;
+        }
         th.active .sort-icon { color: var(--primary-color); }
 
         .title-col { width: 40%; font-weight: 500; }
         .num-col { text-align: right; font-variant-numeric: tabular-nums; }
         .total-col { text-align: right; font-weight: 700; color: var(--primary-color); font-size: 1.05rem; }
         
-        .loading-container { text-align: center; padding: 80px 20px; color: var(--text-muted); }
-        .spinner {
-            border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color);
-            border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px auto;
+        /* 로딩 UI */
+        .loading-container {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
     </style>
 </head>
 <body>
@@ -109,7 +160,7 @@
 
     <div id="loading" class="loading-container">
         <div class="spinner"></div>
-        <div style="font-weight: 500; margin-bottom: 8px;">데이터를 안전하게 수집하고 있습니다</div>
+        <div style="font-weight: 500; margin-bottom: 8px;">데이터를 안전하게 수집하고 있습니다 ⏳</div>
         <div style="font-size: 0.85rem; color: #ADB5BD;">과부하 방지를 위해 순차적으로 불러오는 중입니다 (몇 초 소요)</div>
     </div>
 
@@ -130,59 +181,55 @@
 </div>
 
 <script>
-    // 💡 [수정] 메인 사이트의 '원래' 저장소 이름과 연결되도록 복구
-    const namespace = 'heycj_stats_v1';
+    // 💡 [수정] 메인 앱과 완벽히 동일한 주파수(Namespace)
+    const namespace = 'heycheongju_clicks_v1';
     let statsData = []; 
     let currentSort = { key: 'total', asc: false };
 
-    // 💡 [수정] 메인 사이트의 '원래' 해시 생성 방식(36진법) 복구
+    // 💡 [수정] 메인 앱과 완벽히 동일한 해시 함수 (16진법)
     function getHashId(str) {
-        if (!str) return 'none';
+        if (!str) return 'none'; 
         let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            let char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
+        for (let i = 0; i < str.length; i++) { 
+            hash = ((hash << 5) - hash) + str.charCodeAt(i); 
+            hash = hash & hash; 
         }
-        return Math.abs(hash).toString(36);
+        return Math.abs(hash).toString(16);
     }
 
-    // 💡 [수정] 구글 시트의 숨은 줄바꿈 공백(\r\n)을 완벽히 제거하여 오작동 방지
+    // 💡 [수정] 메인 앱과 완벽히 동일한 CSV 파서 (보이지 않는 엔터키 공백 완벽 제거)
     function parseCSVToJSON(csv) {
-        const rows = [];
-        let row = [], curr = '', insideQuotes = false;
+        const rows = []; let row = []; let curr = ''; let insideQuotes = false;
         for (let i = 0; i < csv.length; i++) {
-            const char = csv[i], nextChar = csv[i + 1];
-            if (char === '"' && insideQuotes && nextChar === '"') { curr += '"'; i++; }
-            else if (char === '"') { insideQuotes = !insideQuotes; }
-            else if (char === ',' && !insideQuotes) { row.push(curr); curr = ''; }
-            else if ((char === '\n' || (char === '\r' && nextChar === '\n')) && !insideQuotes) {
-                row.push(curr); rows.push(row); row = []; curr = '';
-                if (char === '\r') i++;
-            } else { curr += char; }
+            const char = csv[i]; const nextChar = csv[i + 1];
+            if (char === '"' && insideQuotes && nextChar === '"') { curr += '"'; i++; } else if (char === '"') { insideQuotes = !insideQuotes; } 
+            else if (char === ',' && !insideQuotes) { row.push(curr); curr = ''; } 
+            else if ((char === '\n' || (char === '\r' && nextChar === '\n')) && !insideQuotes) { row.push(curr); rows.push(row); row = []; curr = ''; if (char === '\r') i++; } 
+            else { curr += char; }
         }
         if (curr !== '' || row.length > 0) { row.push(curr); rows.push(row); }
         if (rows.length < 2) return [];
         
-        const headers = rows[0].map(h => h.trim().replace(/[\r\n]+/g, ''));
-        const data = [];
+        // 헤더와 데이터의 끝부분 공백/줄바꿈 완벽 제거
+        const headers = rows[0].map(h => h.trim().replace(/[\r\n]+/g, '')); const data = [];
         for (let i = 1; i < rows.length; i++) {
-            if (rows[i].length === 1 && rows[i][0].trim() === '') continue;
-            const obj = {};
-            for (let j = 0; j < headers.length; j++) {
-                if (headers[j]) obj[headers[j]] = rows[i][j] ? rows[i][j].trim().replace(/[\r\n]+$/, '') : '';
-            }
+            if (rows[i].length === 1 && rows[i][0].trim() === '') continue; const obj = {};
+            for (let j = 0; j < headers.length; j++) { if (headers[j]) obj[headers[j]] = rows[i][j] ? rows[i][j].trim().replace(/[\r\n]+$/, '') : ''; }
             if (obj.title || obj['행사명'] || obj['제목']) data.push(obj);
         }
         return data;
     }
 
-    // 💡 [수정] 원래 사용하던 API 키 포맷 'evt_해시값_버튼타입' 형태로 복구
+    // 개별 클릭수 API 호출
     async function fetchClickCount(title, type) {
-        const key = `evt_${getHashId(title)}_${type}`;
+        const key = `${getHashId(title)}_${type}`; // evt_ 접두사 없음
         try {
             const res = await fetch(`https://api.counterapi.dev/v1/${namespace}/${key}`);
-            if (!res.ok) return 0; 
+            if (!res.ok) {
+                // 429 에러(Too Many Requests) 발생 시 콘솔에 경고 표시
+                if (res.status === 429) console.warn('서버 과부하 차단됨:', title);
+                return 0; 
+            }
             const data = await res.json();
             return data.count || 0;
         } catch (e) {
@@ -190,6 +237,7 @@
         }
     }
 
+    // 메인 로드 함수
     async function loadStats() {
         document.getElementById('loading').style.display = 'block';
         document.getElementById('table-wrapper').style.display = 'none';
@@ -203,25 +251,22 @@
             
             statsData = [];
 
-            // 💡 [핵심 수정] API 서버 과부하(차단)를 막기 위해 한 번에 5개씩 나누어서 요청
+            // 💡 [핵심 수정] 100개 동시 요청 방지! 5개씩 묶어서 부드럽게 가져옵니다.
             const chunkSize = 5;
             for (let i = 0; i < events.length; i += chunkSize) {
                 const chunk = events.slice(i, i + chunkSize);
                 
                 const fetchPromises = chunk.map(async (item) => {
-                    const rawTitle = item.title || item['행사명'] || item['제목'];
-                    if (!rawTitle) return;
+                    const eventTitle = item.title || item['행사명'] || item['제목'];
+                    if (!eventTitle) return;
                     
-                    // 메인 사이트와 완전히 똑같은 조건으로 암호화하기 위해 쌍따옴표 처리
-                    const trackTitle = rawTitle.replace(/"/g, '&quot;');
-
                     const [detailClicks, applyClicks] = await Promise.all([
-                        fetchClickCount(trackTitle, 'detail'),
-                        fetchClickCount(trackTitle, 'apply')
+                        fetchClickCount(eventTitle, 'detail'),
+                        fetchClickCount(eventTitle, 'apply')
                     ]);
 
                     statsData.push({
-                        title: rawTitle,
+                        title: eventTitle,
                         detail: detailClicks,
                         apply: applyClicks,
                         total: detailClicks + applyClicks
@@ -230,8 +275,8 @@
 
                 await Promise.all(fetchPromises);
                 
-                // 5개 호출 후 0.15초 휴식 (디도스 공격으로 오해받는 것을 방지)
-                await new Promise(resolve => setTimeout(resolve, 150));
+                // 5개 호출 후 0.2초 휴식 (API 서버를 안심시킵니다)
+                await new Promise(resolve => setTimeout(resolve, 200));
             }
 
             applySorting();
@@ -247,6 +292,7 @@
         }
     }
 
+    // 정렬 함수
     function applySorting() {
         statsData.sort((a, b) => {
             let diff = 0;
@@ -256,9 +302,7 @@
                 diff = b[currentSort.key] - a[currentSort.key];
             }
             if (currentSort.asc) diff = diff * -1;
-            if (diff === 0) {
-                return a.title.localeCompare(b.title);
-            }
+            if (diff === 0) return a.title.localeCompare(b.title);
             return diff;
         });
         
@@ -281,7 +325,6 @@
         keys.forEach(k => {
             const th = document.querySelector(`th[onclick="sortTable('${k}')"]`);
             const icon = document.getElementById(`icon-${k}`);
-            
             if (currentSort.key === k) {
                 th.classList.add('active');
                 icon.textContent = currentSort.asc ? '▲' : '▼';
@@ -292,6 +335,7 @@
         });
     }
 
+    // 테이블 렌더링
     function renderTable() {
         const tbody = document.getElementById('stats-body');
         tbody.innerHTML = '';
