@@ -4,75 +4,188 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>헤이청주 - 클릭 통계 대시보드</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
-            margin: 0;
-            padding: 20px;
+        :root {
+            --primary-color: #00B050; /* 헤이청주 느낌의 산뜻한 그린 */
+            --primary-hover: #008C40;
+            --bg-color: #F8F9FA;
+            --text-main: #212529;
+            --text-muted: #6C757D;
+            --border-color: #DEE2E6;
         }
-        .container {
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .dashboard-container {
             max-width: 1000px;
             margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            overflow: hidden;
         }
-        h1 { font-size: 1.5rem; margin-top: 0; color: #4CAF50; }
-        .controls { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+
+        .header-section {
+            padding: 30px 40px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #ffffff;
+        }
+
+        h1 { 
+            font-size: 1.5rem; 
+            margin: 0; 
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .btn-refresh {
-            background-color: #4CAF50; color: white; border: none; padding: 8px 16px; 
-            border-radius: 6px; cursor: pointer; font-weight: bold;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px; 
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .btn-refresh:hover { background-color: #388E3C; }
+
+        .btn-refresh:hover { 
+            background-color: var(--primary-hover); 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 176, 80, 0.2);
+        }
+
+        .btn-refresh:active {
+            transform: translateY(0);
+        }
         
+        /* 테이블 스타일링 */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
         table {
-            width: 100%; border-collapse: collapse; font-size: 0.9rem;
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 0.95rem;
         }
+
         th, td {
-            padding: 12px; text-align: left; border-bottom: 1px solid #eee;
+            padding: 16px 20px; 
+            text-align: left; 
+            border-bottom: 1px solid var(--border-color);
         }
-        th { background-color: #f9f9f9; font-weight: 700; cursor: pointer; }
-        th:hover { background-color: #f1f1f1; }
-        tr:hover { background-color: #fafafa; }
-        .count-col { text-align: right; font-weight: bold; width: 120px; }
-        .total-col { text-align: right; font-weight: bold; width: 120px; color: #4CAF50; }
+
+        th { 
+            background-color: #F8F9FA; 
+            font-weight: 700; 
+            color: var(--text-muted);
+            cursor: pointer; 
+            user-select: none;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+
+        th:hover { background-color: #E9ECEF; color: var(--text-main); }
+        tr:hover td { background-color: #F8F9FA; }
         
-        .loading { text-align: center; padding: 40px; color: #666; }
+        .sort-icon {
+            display: inline-block;
+            margin-left: 4px;
+            font-size: 0.8rem;
+            color: #ADB5BD;
+        }
+        th.active .sort-icon { color: var(--primary-color); }
+
+        .title-col { width: 40%; font-weight: 500; }
+        .num-col { text-align: right; font-variant-numeric: tabular-nums; }
+        .total-col { text-align: right; font-weight: 700; color: var(--primary-color); font-size: 1.05rem; }
+        
+        /* 로딩 UI */
+        .loading-container {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="controls">
-        <h1>📊 헤이청주 콘텐츠 클릭 통계</h1>
-        <button class="btn-refresh" onclick="loadStats()">새로고침</button>
+<div class="dashboard-container">
+    <div class="header-section">
+        <h1>📊 콘텐츠 클릭 통계</h1>
+        <button class="btn-refresh" onclick="loadStats()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path></svg>
+            새로고침
+        </button>
     </div>
 
-    <div id="loading" class="loading">데이터를 불러오고 계산하는 중입니다... ⏳<br>(콘텐츠 수에 따라 수 초가 걸릴 수 있습니다)</div>
+    <div id="loading" class="loading-container">
+        <div class="spinner"></div>
+        <div style="font-weight: 500; margin-bottom: 8px;">데이터를 분석하고 있습니다</div>
+        <div style="font-size: 0.85rem; color: #ADB5BD;">콘텐츠 수에 따라 약간의 시간이 소요될 수 있습니다.</div>
+    </div>
 
-    <table id="stats-table" style="display: none;">
-        <thead>
-            <tr>
-                <th>행사명 (Title)</th>
-                <th class="count-col" onclick="sortTable('detail')">상세정보 클릭 ↕</th>
-                <th class="count-col" onclick="sortTable('apply')">신청하기 클릭 ↕</th>
-                <th class="total-col" onclick="sortTable('total')">총 클릭수 ↕</th>
-            </tr>
-        </thead>
-        <tbody id="stats-body">
-            </tbody>
-    </table>
+    <div class="table-container" id="table-wrapper" style="display: none;">
+        <table id="stats-table">
+            <thead>
+                <tr>
+                    <th class="title-col" onclick="sortTable('title')">행사명 <span class="sort-icon" id="icon-title">↕</span></th>
+                    <th class="num-col" onclick="sortTable('detail')">상세정보 <span class="sort-icon" id="icon-detail">↕</span></th>
+                    <th class="num-col" onclick="sortTable('apply')">신청하기 <span class="sort-icon" id="icon-apply">↕</span></th>
+                    <th class="total-col" onclick="sortTable('total')">총 클릭수 <span class="sort-icon" id="icon-total">▼</span></th>
+                </tr>
+            </thead>
+            <tbody id="stats-body">
+                </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
     const namespace = 'heycheongju_clicks_v1';
-    let statsData = []; // 정렬을 위해 데이터를 저장할 배열
+    let statsData = []; 
+    let currentSort = { key: 'total', asc: false }; // 기본: 총 클릭수 내림차순
 
-    // 고유 해시 ID 생성 (메인페이지와 동일해야 함)
+    // 고유 해시 ID 생성
     function getHashId(str) {
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
@@ -83,7 +196,7 @@
         return Math.abs(hash).toString(16);
     }
 
-    // CSV 파싱 (기존 코드 재사용)
+    // CSV 파싱 (한글 헤더 지원)
     function parseCSVToJSON(csv) {
         const rows = [];
         let row = [], curr = '', insideQuotes = false;
@@ -108,50 +221,50 @@
             for (let j = 0; j < headers.length; j++) {
                 if (headers[j]) obj[headers[j]] = rows[i][j] ? rows[i][j].trim() : '';
             }
-            if (obj.type || obj.title) data.push(obj);
+            if (obj.title || obj['행사명'] || obj['제목']) data.push(obj);
         }
         return data;
     }
 
-    // 개별 클릭수 가져오기 API
+    // 개별 클릭수 API 호출 (에러 처리 강화)
     async function fetchClickCount(title, type) {
         const key = `${getHashId(title)}_${type}`;
         try {
             const res = await fetch(`https://api.counterapi.dev/v1/${namespace}/${key}`);
-            if (!res.ok) return 0; // 아직 클릭이 없으면 404가 뜨며 0 반환
+            if (!res.ok) return 0; 
             const data = await res.json();
             return data.count || 0;
-        } catch {
-            return 0;
+        } catch (e) {
+            return 0; // 네트워크 에러 또는 차단 시 0 반환
         }
     }
 
+    // 메인 로드 함수
     async function loadStats() {
         document.getElementById('loading').style.display = 'block';
-        document.getElementById('stats-table').style.display = 'none';
+        document.getElementById('table-wrapper').style.display = 'none';
         
         const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQV-02F-qXwS6yLb_XScKqwYj1N0qImwofY2Pyj2tvwnW0i1tl995_BjOfaVHpayppk6YYhqpdLrpa9/pub?output=csv";
         
         try {
-            // 1. 구글 시트 데이터 가져오기
             const response = await fetch(csvUrl);
             const csvText = await response.text();
             const events = parseCSVToJSON(csvText);
             
             statsData = [];
 
-            // 2. 모든 이벤트의 클릭수 비동기로 가져오기 (Promise.all 병렬 처리)
+            // 비동기로 데이터 수집
             const fetchPromises = events.map(async (item) => {
-                if (!item.title) return;
+                const eventTitle = item.title || item['행사명'] || item['제목'];
+                if (!eventTitle) return;
                 
-                // 동시에 2개(상세, 신청) 버튼 통계를 호출
                 const [detailClicks, applyClicks] = await Promise.all([
-                    fetchClickCount(item.title, 'detail'),
-                    fetchClickCount(item.title, 'apply')
+                    fetchClickCount(eventTitle, 'detail'),
+                    fetchClickCount(eventTitle, 'apply')
                 ]);
 
                 statsData.push({
-                    title: item.title,
+                    title: eventTitle,
                     detail: detailClicks,
                     apply: applyClicks,
                     total: detailClicks + applyClicks
@@ -160,55 +273,97 @@
 
             await Promise.all(fetchPromises);
 
-            // 기본 정렬: 총 클릭수 내림차순
-            statsData.sort((a, b) => b.total - a.total);
-            renderTable();
+            // 데이터 수집 완료 후 현재 정렬 상태를 유지하며 테이블 렌더링
+            applySorting();
 
         } catch (error) {
             console.error(error);
-            alert('데이터를 불러오는데 실패했습니다.');
+            document.getElementById('stats-body').innerHTML = `
+                <tr><td colspan="4" class="empty-state">데이터를 불러오는데 실패했습니다.<br>인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.</td></tr>
+            `;
         } finally {
             document.getElementById('loading').style.display = 'none';
-            document.getElementById('stats-table').style.display = 'table';
+            document.getElementById('table-wrapper').style.display = 'block';
         }
     }
 
-    // 테이블 그리기
+    // 정렬 실행 함수 (클릭수가 같을 경우 제목 가나다순으로 보조 정렬 추가)
+    function applySorting() {
+        statsData.sort((a, b) => {
+            let diff = 0;
+            
+            if (currentSort.key === 'title') {
+                diff = a.title.localeCompare(b.title);
+            } else {
+                diff = b[currentSort.key] - a[currentSort.key]; // 숫자 기본 내림차순
+            }
+
+            // 오름차순일 경우 결과 반전
+            if (currentSort.asc) diff = diff * -1;
+
+            // 값이 같을 경우 순서가 엉망이 되지 않도록 제목 기준 가나다순 정렬 보장
+            if (diff === 0) {
+                return a.title.localeCompare(b.title);
+            }
+            
+            return diff;
+        });
+        
+        updateSortIcons();
+        renderTable();
+    }
+
+    // 테이블 헤더 클릭 시 호출
+    function sortTable(key) {
+        if (currentSort.key === key) {
+            currentSort.asc = !currentSort.asc; // 방향 토글
+        } else {
+            currentSort.key = key;
+            currentSort.asc = (key === 'title') ? true : false; // 제목은 가나다순(오름차순)이 기본, 숫자는 큰 수(내림차순)가 기본
+        }
+        applySorting();
+    }
+
+    // 정렬 아이콘 UI 업데이트
+    function updateSortIcons() {
+        const keys = ['title', 'detail', 'apply', 'total'];
+        keys.forEach(k => {
+            const th = document.querySelector(`th[onclick="sortTable('${k}')"]`);
+            const icon = document.getElementById(`icon-${k}`);
+            
+            if (currentSort.key === k) {
+                th.classList.add('active');
+                icon.textContent = currentSort.asc ? '▲' : '▼';
+            } else {
+                th.classList.remove('active');
+                icon.textContent = '↕';
+            }
+        });
+    }
+
+    // 테이블 렌더링
     function renderTable() {
         const tbody = document.getElementById('stats-body');
         tbody.innerHTML = '';
         
+        if(statsData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">표시할 통계 데이터가 없습니다.<br>구글 시트의 첫 번째 행에 "행사명" 또는 "title" 열이 있는지 확인해주세요.</td></tr>';
+            return;
+        }
+
         statsData.forEach(item => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${item.title}</td>
-                <td class="count-col">${item.detail.toLocaleString()}</td>
-                <td class="count-col">${item.apply.toLocaleString()}</td>
+                <td class="title-col">${item.title}</td>
+                <td class="num-col">${item.detail.toLocaleString()}</td>
+                <td class="num-col">${item.apply.toLocaleString()}</td>
                 <td class="total-col">${item.total.toLocaleString()}</td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    // 테이블 컬럼 클릭 시 정렬 기능
-    let currentSort = { key: 'total', asc: false };
-    function sortTable(key) {
-        if (currentSort.key === key) {
-            currentSort.asc = !currentSort.asc;
-        } else {
-            currentSort.key = key;
-            currentSort.asc = false; // 기본은 내림차순
-        }
-
-        statsData.sort((a, b) => {
-            if (currentSort.asc) return a[key] - b[key];
-            return b[key] - a[key];
-        });
-        
-        renderTable();
-    }
-
-    // 페이지 로드 시 실행
+    // 초기 실행
     document.addEventListener('DOMContentLoaded', loadStats);
 </script>
 
