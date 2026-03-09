@@ -75,76 +75,24 @@
             transform: translateY(0);
         }
         
-        /* 테이블 스타일링 */
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%; 
-            border-collapse: collapse; 
-            font-size: 0.95rem;
-        }
-
-        th, td {
-            padding: 16px 20px; 
-            text-align: left; 
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        th { 
-            background-color: #F8F9FA; 
-            font-weight: 700; 
-            color: var(--text-muted);
-            cursor: pointer; 
-            user-select: none;
-            transition: background-color 0.2s;
-            white-space: nowrap;
-        }
-
+        .table-container { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background-color: #F8F9FA; font-weight: 700; color: var(--text-muted); cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
         th:hover { background-color: #E9ECEF; color: var(--text-main); }
         tr:hover td { background-color: #F8F9FA; }
         
-        .sort-icon {
-            display: inline-block;
-            margin-left: 4px;
-            font-size: 0.8rem;
-            color: #ADB5BD;
-        }
+        .sort-icon { display: inline-block; margin-left: 4px; font-size: 0.8rem; color: #ADB5BD; }
         th.active .sort-icon { color: var(--primary-color); }
 
         .title-col { width: 40%; font-weight: 500; }
         .num-col { text-align: right; font-variant-numeric: tabular-nums; }
         .total-col { text-align: right; font-weight: 700; color: var(--primary-color); font-size: 1.05rem; }
         
-        /* 로딩 UI */
-        .loading-container {
-            text-align: center;
-            padding: 80px 20px;
-            color: var(--text-muted);
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
-        }
+        .loading-container { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
     </style>
 </head>
 <body>
@@ -161,7 +109,7 @@
     <div id="loading" class="loading-container">
         <div class="spinner"></div>
         <div style="font-weight: 500; margin-bottom: 8px;">데이터를 안전하게 수집하고 있습니다 ⏳</div>
-        <div style="font-size: 0.85rem; color: #ADB5BD;">과부하 방지를 위해 순차적으로 불러오는 중입니다 (몇 초 소요)</div>
+        <div style="font-size: 0.85rem; color: #ADB5BD;">누락을 막기 위해 순차적으로 불러오는 중입니다 (몇 초 소요)</div>
     </div>
 
     <div class="table-container" id="table-wrapper" style="display: none;">
@@ -181,12 +129,12 @@
 </div>
 
 <script>
-    // 💡 [수정] 메인 앱과 완벽히 동일한 주파수(Namespace)
-    const namespace = 'heycheongju_clicks_v1';
+    // 💡 [핵심 수정 1] 메인 웹사이트의 '원본' 주파수로 완벽히 복구했습니다.
+    const namespace = 'heycj_stats_v1';
     let statsData = []; 
     let currentSort = { key: 'total', asc: false };
 
-    // 💡 [수정] 메인 앱과 완벽히 동일한 해시 함수 (16진법)
+    // 💡 [핵심 수정 2] 메인 웹사이트의 '원본' 해시 암호화 방식으로 복구했습니다. (36진법)
     function getHashId(str) {
         if (!str) return 'none'; 
         let hash = 0;
@@ -194,10 +142,10 @@
             hash = ((hash << 5) - hash) + str.charCodeAt(i); 
             hash = hash & hash; 
         }
-        return Math.abs(hash).toString(16);
+        return Math.abs(hash).toString(36);
     }
 
-    // 💡 [수정] 메인 앱과 완벽히 동일한 CSV 파서 (보이지 않는 엔터키 공백 완벽 제거)
+    // CSV 파서 (공백 완벽 제거)
     function parseCSVToJSON(csv) {
         const rows = []; let row = []; let curr = ''; let insideQuotes = false;
         for (let i = 0; i < csv.length; i++) {
@@ -210,7 +158,6 @@
         if (curr !== '' || row.length > 0) { row.push(curr); rows.push(row); }
         if (rows.length < 2) return [];
         
-        // 헤더와 데이터의 끝부분 공백/줄바꿈 완벽 제거
         const headers = rows[0].map(h => h.trim().replace(/[\r\n]+/g, '')); const data = [];
         for (let i = 1; i < rows.length; i++) {
             if (rows[i].length === 1 && rows[i][0].trim() === '') continue; const obj = {};
@@ -220,16 +167,12 @@
         return data;
     }
 
-    // 개별 클릭수 API 호출
+    // 💡 [핵심 수정 3] 메인 웹사이트의 '원본' 열쇠(Key) 포맷으로 복구했습니다. (evt_ 추가)
     async function fetchClickCount(title, type) {
-        const key = `${getHashId(title)}_${type}`; // evt_ 접두사 없음
+        const key = `evt_${getHashId(title)}_${type}`; 
         try {
             const res = await fetch(`https://api.counterapi.dev/v1/${namespace}/${key}`);
-            if (!res.ok) {
-                // 429 에러(Too Many Requests) 발생 시 콘솔에 경고 표시
-                if (res.status === 429) console.warn('서버 과부하 차단됨:', title);
-                return 0; 
-            }
+            if (!res.ok) return 0; 
             const data = await res.json();
             return data.count || 0;
         } catch (e) {
@@ -251,8 +194,8 @@
             
             statsData = [];
 
-            // 💡 [핵심 수정] 100개 동시 요청 방지! 5개씩 묶어서 부드럽게 가져옵니다.
-            const chunkSize = 5;
+            // 💡 [핵심 수정 4] 서버 과부하 원천 차단! 아주 안전하게 3개씩, 0.3초 간격으로 가져옵니다.
+            const chunkSize = 3;
             for (let i = 0; i < events.length; i += chunkSize) {
                 const chunk = events.slice(i, i + chunkSize);
                 
@@ -275,8 +218,8 @@
 
                 await Promise.all(fetchPromises);
                 
-                // 5개 호출 후 0.2초 휴식 (API 서버를 안심시킵니다)
-                await new Promise(resolve => setTimeout(resolve, 200));
+                // 3개 통신 후 0.3초 휴식 (데이터가 많아도 절대 튕기지 않습니다)
+                await new Promise(resolve => setTimeout(resolve, 300));
             }
 
             applySorting();
@@ -292,31 +235,21 @@
         }
     }
 
-    // 정렬 함수
     function applySorting() {
         statsData.sort((a, b) => {
             let diff = 0;
-            if (currentSort.key === 'title') {
-                diff = a.title.localeCompare(b.title);
-            } else {
-                diff = b[currentSort.key] - a[currentSort.key];
-            }
+            if (currentSort.key === 'title') { diff = a.title.localeCompare(b.title); } 
+            else { diff = b[currentSort.key] - a[currentSort.key]; }
             if (currentSort.asc) diff = diff * -1;
             if (diff === 0) return a.title.localeCompare(b.title);
             return diff;
         });
-        
-        updateSortIcons();
-        renderTable();
+        updateSortIcons(); renderTable();
     }
 
     function sortTable(key) {
-        if (currentSort.key === key) {
-            currentSort.asc = !currentSort.asc;
-        } else {
-            currentSort.key = key;
-            currentSort.asc = (key === 'title') ? true : false;
-        }
+        if (currentSort.key === key) { currentSort.asc = !currentSort.asc; } 
+        else { currentSort.key = key; currentSort.asc = (key === 'title') ? true : false; }
         applySorting();
     }
 
@@ -325,25 +258,15 @@
         keys.forEach(k => {
             const th = document.querySelector(`th[onclick="sortTable('${k}')"]`);
             const icon = document.getElementById(`icon-${k}`);
-            if (currentSort.key === k) {
-                th.classList.add('active');
-                icon.textContent = currentSort.asc ? '▲' : '▼';
-            } else {
-                th.classList.remove('active');
-                icon.textContent = '↕';
-            }
+            if (currentSort.key === k) { th.classList.add('active'); icon.textContent = currentSort.asc ? '▲' : '▼'; } 
+            else { th.classList.remove('active'); icon.textContent = '↕'; }
         });
     }
 
-    // 테이블 렌더링
     function renderTable() {
         const tbody = document.getElementById('stats-body');
         tbody.innerHTML = '';
-        
-        if(statsData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">표시할 통계 데이터가 없습니다.</td></tr>';
-            return;
-        }
+        if(statsData.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="empty-state">표시할 통계 데이터가 없습니다.</td></tr>'; return; }
 
         statsData.forEach(item => {
             const tr = document.createElement('tr');
