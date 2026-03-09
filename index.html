@@ -165,6 +165,14 @@
             padding: 60px 20px;
             color: var(--text-muted);
         }
+
+        .helper-text {
+            padding: 14px 20px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            background: #fcfcfc;
+            border-top: 1px solid var(--border-color);
+        }
     </style>
 </head>
 <body>
@@ -183,8 +191,8 @@
 
     <div id="loading" class="loading-container">
         <div class="spinner"></div>
-        <div style="font-weight: 500; margin-bottom: 8px;">데이터를 불러오고 있습니다 ⏳</div>
-        <div style="font-size: 0.85rem; color: #ADB5BD;">클릭 수를 순차적으로 조회 중입니다</div>
+        <div style="font-weight: 500; margin-bottom: 8px;">데이터를 안전하게 수집하고 있습니다 ⏳</div>
+        <div style="font-size: 0.85rem; color: #ADB5BD;">행사별 클릭 수를 순차적으로 불러오는 중입니다</div>
     </div>
 
     <div class="table-container" id="table-wrapper" style="display: none;">
@@ -193,36 +201,43 @@
                 <tr>
                     <th class="title-col" onclick="sortTable('title')">행사명 <span class="sort-icon" id="icon-title">↕</span></th>
                     <th class="num-col" onclick="sortTable('detail')">상세정보 <span class="sort-icon" id="icon-detail">↕</span></th>
-                    <th class="num-col" onclick="sortTable('apply')">신청하기 <span class="sort-icon" id="icon-apply">↕</span></th>
+                    <th class="num-col" onclick="sortTable('apply')">예약하기 <span class="sort-icon" id="icon-apply">↕</span></th>
                     <th class="total-col" onclick="sortTable('total')">총 클릭수 <span class="sort-icon" id="icon-total">▼</span></th>
                 </tr>
             </thead>
             <tbody id="stats-body"></tbody>
         </table>
+        <div class="helper-text">
+            메인사이트 기준 저장 규칙: <b>namespace = heycheongju_clicks_v1</b> / <b>hash = 16진법</b> / <b>key = {hash}_{type}</b>
+        </div>
     </div>
 </div>
 
 <script>
-    // 메인 웹사이트와 완전히 동일하게 맞춤
+    // 메인사이트와 동일하게 맞춘 설정
     const namespace = 'heycheongju_clicks_v1';
     let statsData = [];
     let currentSort = { key: 'total', asc: false };
 
-    function normalizeTitle(str) {
-        return (str || '').trim();
-    }
-
-    // 메인 웹사이트의 getHash()와 동일
+    // 메인사이트와 동일한 해시 로직 (16진법)
     function getHashId(str) {
-        const clean = normalizeTitle(str);
-        if (!clean) return 'none';
-
+        if (!str) return 'none';
         let hash = 0;
-        for (let i = 0; i < clean.length; i++) {
-            hash = ((hash << 5) - hash) + clean.charCodeAt(i);
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
             hash = hash & hash;
         }
         return Math.abs(hash).toString(16);
+    }
+
+    // 메인사이트 클릭 추적 시 들어갈 수 있는 문자열 차이를 줄이기 위한 정규화
+    function normalizeTitle(title) {
+        return String(title || '')
+            .trim()
+            .replace(/&quot;/g, '"')
+            .replace(/\\'/g, "'")
+            .replace(/\\"/g, '"')
+            .replace(/\s+/g, ' ');
     }
 
     function parseCSVToJSON(csv) {
@@ -270,9 +285,7 @@
             const obj = {};
             for (let j = 0; j < headers.length; j++) {
                 if (headers[j]) {
-                    obj[headers[j]] = rows[i][j]
-                        ? rows[i][j].trim().replace(/[\r\n]+$/, '')
-                        : '';
+                    obj[headers[j]] = rows[i][j] ? rows[i][j].trim().replace(/[\r\n]+$/, '') : '';
                 }
             }
 
@@ -285,17 +298,15 @@
     }
 
     async function fetchClickCount(title, type) {
-        const cleanTitle = normalizeTitle(title);
-        const key = `${getHashId(cleanTitle)}_${type}`;
+        const normalizedTitle = normalizeTitle(title);
+        const key = `${getHashId(normalizedTitle)}_${type}`;
 
         try {
             const res = await fetch(`https://api.counterapi.dev/v1/${namespace}/${key}`);
             if (!res.ok) return 0;
-
             const data = await res.json();
             return data.count || 0;
         } catch (e) {
-            console.error(`클릭 수 조회 실패: ${cleanTitle} / ${type}`, e);
             return 0;
         }
     }
@@ -304,7 +315,7 @@
         document.getElementById('loading').style.display = 'block';
         document.getElementById('table-wrapper').style.display = 'none';
 
-        const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQV-02F-qXwS6yLb_XScKqwYj1N0qImwofY2Pyj2tvwnW0i1tl995_BjOfaVHpayppk6YYhqpdLrpa9/pub?output=csv&_t=" + Date.now();
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQV-02F-qXwS6yLb_XScKqwYj1N0qImwofY2Pyj2tvwnW0i1tl995_BjOfaVHpayppk6YYhqpdLrpa9/pub?output=csv&_t=' + Date.now();
 
         try {
             const response = await fetch(csvUrl);
@@ -315,7 +326,9 @@
 
             statsData = [];
 
+            // 너무 빠른 호출로 누락/제한 걸리는 것 방지
             const chunkSize = 3;
+
             for (let i = 0; i < events.length; i += chunkSize) {
                 const chunk = events.slice(i, i + chunkSize);
 
@@ -346,8 +359,8 @@
             document.getElementById('stats-body').innerHTML = `
                 <tr>
                     <td colspan="4" class="empty-state">
-                        데이터를 불러오는데 실패했습니다.<br>
-                        잠시 후 새로고침 해주세요.
+                        데이터를 불러오는데 실패했습니다.<br />
+                        잠시 후 다시 새로고침 해주세요.
                     </td>
                 </tr>
             `;
@@ -419,13 +432,22 @@
         statsData.forEach(item => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td class="title-col">${item.title}</td>
+                <td class="title-col">${escapeHtml(item.title)}</td>
                 <td class="num-col">${item.detail.toLocaleString()}</td>
                 <td class="num-col">${item.apply.toLocaleString()}</td>
                 <td class="total-col">${item.total.toLocaleString()}</td>
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     document.addEventListener('DOMContentLoaded', loadStats);
