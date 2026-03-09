@@ -3,182 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>헤이청주 관리자 대시보드 (클릭 통계)</title>
+    <title>헤이청주 - 클릭 통계 대시보드</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1 { margin-top: 0; color: #4CAF50; font-size: 1.8rem; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-        .status { padding: 15px; background: #e8f5e9; color: #2e7d32; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        h1 { font-size: 1.5rem; margin-top: 0; color: #4CAF50; }
+        .controls { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-refresh {
+            background-color: #4CAF50; color: white; border: none; padding: 8px 16px; 
+            border-radius: 6px; cursor: pointer; font-weight: bold;
+        }
+        .btn-refresh:hover { background-color: #388E3C; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #fafafa; font-weight: 700; color: #555; }
-        tr:hover { background-color: #f9f9f9; }
-        .num { text-align: right; font-weight: bold; color: #1976D2; }
-        .chart-container { position: relative; height: 50vh; width: 100%; margin-top: 30px; }
+        table {
+            width: 100%; border-collapse: collapse; font-size: 0.9rem;
+        }
+        th, td {
+            padding: 12px; text-align: left; border-bottom: 1px solid #eee;
+        }
+        th { background-color: #f9f9f9; font-weight: 700; cursor: pointer; }
+        th:hover { background-color: #f1f1f1; }
+        tr:hover { background-color: #fafafa; }
+        .count-col { text-align: right; font-weight: bold; width: 120px; }
+        .total-col { text-align: right; font-weight: bold; width: 120px; color: #4CAF50; }
+        
+        .loading { text-align: center; padding: 40px; color: #666; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📊 헤이청주 콘텐츠별 클릭 통계</h1>
-    <div id="status" class="status">구글 시트 데이터 분석 및 통계 서버 연동 중... (잠시만 기다려주세요⏳)</div>
-    
-    <div class="chart-container">
-        <canvas id="myChart"></canvas>
+    <div class="controls">
+        <h1>📊 헤이청주 콘텐츠 클릭 통계</h1>
+        <button class="btn-refresh" onclick="loadStats()">새로고침</button>
     </div>
 
-    <table id="stats-table">
+    <div id="loading" class="loading">데이터를 불러오고 계산하는 중입니다... ⏳<br>(콘텐츠 수에 따라 수 초가 걸릴 수 있습니다)</div>
+
+    <table id="stats-table" style="display: none;">
         <thead>
             <tr>
-                <th>행사명 (제목)</th>
-                <th>상세정보 클릭</th>
-                <th>신청하기 클릭</th>
-                <th>총 클릭 수</th>
+                <th>행사명 (Title)</th>
+                <th class="count-col" onclick="sortTable('detail')">상세정보 클릭 ↕</th>
+                <th class="count-col" onclick="sortTable('apply')">신청하기 클릭 ↕</th>
+                <th class="total-col" onclick="sortTable('total')">총 클릭수 ↕</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="stats-body">
             </tbody>
     </table>
 </div>
 
 <script>
-    function getHash(str) {
-        if (!str) return 'none';
+    const namespace = 'heycheongju_clicks_v1';
+    let statsData = []; // 정렬을 위해 데이터를 저장할 배열
+
+    // 고유 해시 ID 생성 (메인페이지와 동일해야 함)
+    function getHashId(str) {
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
-            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            let char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
             hash = hash & hash;
         }
-        return Math.abs(hash).toString(36);
+        return Math.abs(hash).toString(16);
     }
 
+    // CSV 파싱 (기존 코드 재사용)
     function parseCSVToJSON(csv) {
-        const rows = []; let row = []; let curr = ''; let insideQuotes = false;
+        const rows = [];
+        let row = [], curr = '', insideQuotes = false;
         for (let i = 0; i < csv.length; i++) {
-            const char = csv[i]; const nextChar = csv[i + 1];
-            if (char === '"' && insideQuotes && nextChar === '"') { curr += '"'; i++; } else if (char === '"') { insideQuotes = !insideQuotes; } 
-            else if (char === ',' && !insideQuotes) { row.push(curr); curr = ''; } 
-            else if ((char === '\n' || (char === '\r' && nextChar === '\n')) && !insideQuotes) { row.push(curr); rows.push(row); row = []; curr = ''; if (char === '\r') i++; } 
-            else { curr += char; }
+            const char = csv[i], nextChar = csv[i + 1];
+            if (char === '"' && insideQuotes && nextChar === '"') { curr += '"'; i++; }
+            else if (char === '"') { insideQuotes = !insideQuotes; }
+            else if (char === ',' && !insideQuotes) { row.push(curr); curr = ''; }
+            else if ((char === '\n' || (char === '\r' && nextChar === '\n')) && !insideQuotes) {
+                row.push(curr); rows.push(row); row = []; curr = '';
+                if (char === '\r') i++;
+            } else { curr += char; }
         }
         if (curr !== '' || row.length > 0) { row.push(curr); rows.push(row); }
         if (rows.length < 2) return [];
-        const headers = rows[0].map(h => h.trim().replace(/[\r\n]+/g, '')); const data = [];
+        
+        const headers = rows[0].map(h => h.trim());
+        const data = [];
         for (let i = 1; i < rows.length; i++) {
-            if (rows[i].length === 1 && rows[i][0].trim() === '') continue; const obj = {};
-            for (let j = 0; j < headers.length; j++) { if (headers[j]) obj[headers[j]] = rows[i][j] ? rows[i][j].trim().replace(/[\r\n]+$/, '') : ''; }
-            if (obj.title) data.push(obj);
+            if (rows[i].length === 1 && rows[i][0].trim() === '') continue;
+            const obj = {};
+            for (let j = 0; j < headers.length; j++) {
+                if (headers[j]) obj[headers[j]] = rows[i][j] ? rows[i][j].trim() : '';
+            }
+            if (obj.type || obj.title) data.push(obj);
         }
         return data;
     }
 
-    async function loadStats() {
-        const statusEl = document.getElementById('status');
-        const tbody = document.querySelector('#stats-table tbody');
-
+    // 개별 클릭수 가져오기 API
+    async function fetchClickCount(title, type) {
+        const key = `${getHashId(title)}_${type}`;
         try {
-            const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQV-02F-qXwS6yLb_XScKqwYj1N0qImwofY2Pyj2tvwnW0i1tl995_BjOfaVHpayppk6YYhqpdLrpa9/pub?output=csv";
-            const response = await fetch(csvUrl + "&_t=" + Date.now());
-            const csvText = await response.text();
-            let events = parseCSVToJSON(csvText);
-
-            if(events.length === 0) {
-                 statusEl.innerText = "가져올 행사가 없습니다.";
-                 return;
-            }
-
-            const statResults = [];
-            // 현재 메인 웹사이트가 쓰고 있는 기존 방 이름 그대로 유지
-            const namespace = 'heycj_stats_v1'; 
-            let scanned = 0;
-
-            for (const event of events) {
-                const rawTitle = event.title;
-                if(!rawTitle) continue;
-
-                // ✨ 가장 중요: 현재 메인 웹사이트 코드와 완벽하게 동일하게 따옴표 변환 후 해싱
-                const trackTitle = rawTitle.replace(/'/g, "\\'");
-                const hash = getHash(trackTitle);
-                
-                let detailCount = 0;
-                let applyCount = 0;
-
-                // 메인 웹사이트가 보내는 v1 주소 그대로 읽기
-                try {
-                    const resDetail = await fetch(`https://api.counterapi.dev/v1/${namespace}/evt_${hash}_detail`);
-                    if(resDetail.ok) { const d = await resDetail.json(); detailCount = d.count; }
-                } catch(e) {}
-                
-                try {
-                    const resApply = await fetch(`https://api.counterapi.dev/v1/${namespace}/evt_${hash}_apply`);
-                    if(resApply.ok) { const d = await resApply.json(); applyCount = d.count; }
-                } catch(e) {}
-
-                scanned++;
-                statusEl.innerText = `서버에서 통계를 안전하게 하나씩 불러오는 중입니다... (${scanned} / ${events.length} 개 확인 완료) ⏳`;
-
-                if(detailCount > 0 || applyCount > 0) {
-                    statResults.push({ title: rawTitle, detailCount, applyCount, total: detailCount + applyCount });
-                }
-
-                // 서버 차단을 막는 0.1초 휴식시간
-                await new Promise(resolve => setTimeout(resolve, 100)); 
-            }
-
-            statResults.sort((a, b) => b.total - a.total);
-            tbody.innerHTML = "";
-
-            if(statResults.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">아직 버튼 클릭 데이터가 없습니다. 본 사이트에서 버튼을 테스트해 보세요!</td></tr>`;
-                statusEl.innerText = "조회 완료! (데이터 없음)";
-                return;
-            }
-
-            statResults.forEach(stat => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${stat.title}</td>
-                        <td class="num">${stat.detailCount} 회</td>
-                        <td class="num">${stat.applyCount} 회</td>
-                        <td class="num" style="color:#d32f2f;">${stat.total} 회</td>
-                    </tr>
-                `;
-            });
-
-            const top10 = statResults.slice(0, 10);
-            const ctx = document.getElementById('myChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: top10.map(s => s.title.length > 15 ? s.title.substring(0,15)+'...' : s.title),
-                    datasets: [
-                        { label: '상세정보 클릭', data: top10.map(s => s.detailCount), backgroundColor: '#90CAF9' },
-                        { label: '신청하기 클릭', data: top10.map(s => s.applyCount), backgroundColor: '#4CAF50' }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
-                    plugins: { title: { display: true, text: '상위 10개 인기 콘텐츠 통계 (총 클릭 합산)' } }
-                }
-            });
-
-            statusEl.innerText = `데이터 로딩 완료! (가장 클릭수가 많은 순서대로 정렬됨)`;
-            statusEl.style.backgroundColor = "#e3f2fd";
-            statusEl.style.color = "#1565c0";
-
-        } catch (err) {
-            console.error(err);
-            statusEl.innerText = "데이터 로드 중 에러가 발생했습니다.";
-            statusEl.style.backgroundColor = "#ffebee";
-            statusEl.style.color = "#c62828";
+            const res = await fetch(`https://api.counterapi.dev/v1/${namespace}/${key}`);
+            if (!res.ok) return 0; // 아직 클릭이 없으면 404가 뜨며 0 반환
+            const data = await res.json();
+            return data.count || 0;
+        } catch {
+            return 0;
         }
     }
 
-    window.onload = loadStats;
+    async function loadStats() {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('stats-table').style.display = 'none';
+        
+        const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQV-02F-qXwS6yLb_XScKqwYj1N0qImwofY2Pyj2tvwnW0i1tl995_BjOfaVHpayppk6YYhqpdLrpa9/pub?output=csv";
+        
+        try {
+            // 1. 구글 시트 데이터 가져오기
+            const response = await fetch(csvUrl);
+            const csvText = await response.text();
+            const events = parseCSVToJSON(csvText);
+            
+            statsData = [];
+
+            // 2. 모든 이벤트의 클릭수 비동기로 가져오기 (Promise.all 병렬 처리)
+            const fetchPromises = events.map(async (item) => {
+                if (!item.title) return;
+                
+                // 동시에 2개(상세, 신청) 버튼 통계를 호출
+                const [detailClicks, applyClicks] = await Promise.all([
+                    fetchClickCount(item.title, 'detail'),
+                    fetchClickCount(item.title, 'apply')
+                ]);
+
+                statsData.push({
+                    title: item.title,
+                    detail: detailClicks,
+                    apply: applyClicks,
+                    total: detailClicks + applyClicks
+                });
+            });
+
+            await Promise.all(fetchPromises);
+
+            // 기본 정렬: 총 클릭수 내림차순
+            statsData.sort((a, b) => b.total - a.total);
+            renderTable();
+
+        } catch (error) {
+            console.error(error);
+            alert('데이터를 불러오는데 실패했습니다.');
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('stats-table').style.display = 'table';
+        }
+    }
+
+    // 테이블 그리기
+    function renderTable() {
+        const tbody = document.getElementById('stats-body');
+        tbody.innerHTML = '';
+        
+        statsData.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.title}</td>
+                <td class="count-col">${item.detail.toLocaleString()}</td>
+                <td class="count-col">${item.apply.toLocaleString()}</td>
+                <td class="total-col">${item.total.toLocaleString()}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 테이블 컬럼 클릭 시 정렬 기능
+    let currentSort = { key: 'total', asc: false };
+    function sortTable(key) {
+        if (currentSort.key === key) {
+            currentSort.asc = !currentSort.asc;
+        } else {
+            currentSort.key = key;
+            currentSort.asc = false; // 기본은 내림차순
+        }
+
+        statsData.sort((a, b) => {
+            if (currentSort.asc) return a[key] - b[key];
+            return b[key] - a[key];
+        });
+        
+        renderTable();
+    }
+
+    // 페이지 로드 시 실행
+    document.addEventListener('DOMContentLoaded', loadStats);
 </script>
 
 </body>
