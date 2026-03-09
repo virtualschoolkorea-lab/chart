@@ -1,456 +1,261 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>헤이청주 - 클릭 통계 대시보드</title>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;700&display=swap" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>헤이청주 - 클릭 통계 관리자 대시보드</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #00B050;
-            --primary-hover: #008C40;
-            --bg-color: #F8F9FA;
-            --text-main: #212529;
-            --text-muted: #6C757D;
-            --border-color: #DEE2E6;
+            --primary-color: #4CAF50;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --border-color: #e0e0e0;
         }
-
-        body {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 40px 20px;
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 20px; 
         }
-
-        .dashboard-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-            overflow: hidden;
+        .dashboard-container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            background-color: var(--card-bg); 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
         }
-
-        .header-section {
-            padding: 30px 40px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #ffffff;
+        h1 { 
+            text-align: center; 
+            color: var(--primary-color); 
+            margin-top: 0; 
         }
-
-        h1 {
-            font-size: 1.5rem;
-            margin: 0;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .description { 
+            text-align: center; 
+            color: #666; 
+            font-size: 0.95rem; 
+            margin-bottom: 30px; 
         }
-
-        .btn-refresh {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
+        .status-box {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
             border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-refresh:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 176, 80, 0.2);
-        }
-
-        .btn-refresh:active {
-            transform: translateY(0);
-        }
-
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.95rem;
-        }
-
-        th, td {
-            padding: 16px 20px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        th {
-            background-color: #F8F9FA;
-            font-weight: 700;
-            color: var(--text-muted);
-            cursor: pointer;
-            user-select: none;
-            transition: background-color 0.2s;
-            white-space: nowrap;
-        }
-
-        th:hover {
-            background-color: #E9ECEF;
-            color: var(--text-main);
-        }
-
-        tr:hover td {
-            background-color: #F8F9FA;
-        }
-
-        .sort-icon {
-            display: inline-block;
-            margin-left: 4px;
-            font-size: 0.8rem;
-            color: #ADB5BD;
-        }
-
-        th.active .sort-icon {
-            color: var(--primary-color);
-        }
-
-        .title-col {
-            width: 40%;
+            text-align: center;
             font-weight: 500;
+            margin-bottom: 20px;
         }
-
-        .num-col {
-            text-align: right;
-            font-variant-numeric: tabular-nums;
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 10px; 
         }
-
-        .total-col {
-            text-align: right;
+        th, td { 
+            padding: 12px 15px; 
+            border-bottom: 1px solid var(--border-color); 
+            text-align: left; 
+            font-size: 0.95rem;
+        }
+        th { 
+            background-color: #fafafa; 
+            color: #555; 
             font-weight: 700;
-            color: var(--primary-color);
-            font-size: 1.05rem;
+            border-top: 2px solid var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
         }
-
-        .loading-container {
+        tr:hover { background-color: #f9f9f9; }
+        
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        
+        .badge { 
+            display: inline-block;
+            padding: 4px 10px; 
+            border-radius: 20px; 
+            font-size: 0.8rem; 
+            font-weight: bold;
+            color: white; 
+            min-width: 30px;
             text-align: center;
-            padding: 80px 20px;
-            color: var(--text-muted);
         }
+        .badge-detail { background-color: #3498db; }
+        .badge-apply { background-color: #f39c12; }
+        .badge-total { background-color: var(--primary-color); font-size: 0.9rem;}
 
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px auto;
+        .rank {
+            font-weight: bold;
+            color: #888;
         }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
-        }
-
-        .helper-text {
-            padding: 14px 20px;
-            font-size: 0.82rem;
-            color: var(--text-muted);
-            background: #fcfcfc;
-            border-top: 1px solid var(--border-color);
+        .rank-top {
+            color: #e74c3c;
+            font-size: 1.1rem;
         }
     </style>
 </head>
 <body>
 
 <div class="dashboard-container">
-    <div class="header-section">
-        <h1>📊 콘텐츠 클릭 통계</h1>
-        <button class="btn-refresh" onclick="loadStats()">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <path d="M21 2v6h-6"></path>
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-            </svg>
-            새로고침
-        </button>
+    <h1>📊 이벤트 클릭 통계 대시보드</h1>
+    <p class="description">사용자들이 누른 '상세보기' 및 '신청하기' 버튼의 누적 클릭수를 확인합니다.<br>(클릭 수가 1 이상인 행사만 표시됩니다)</p>
+
+    <div id="status-message" class="status-box">
+        데이터를 불러오는 중입니다. 잠시만 기다려주세요... ⏳<br>
+        <small>(행사 목록과 통계 데이터를 매칭하는 데 몇 초 정도 소요될 수 있습니다)</small>
     </div>
 
-    <div id="loading" class="loading-container">
-        <div class="spinner"></div>
-        <div style="font-weight: 500; margin-bottom: 8px;">데이터를 안전하게 수집하고 있습니다 ⏳</div>
-        <div style="font-size: 0.85rem; color: #ADB5BD;">행사별 클릭 수를 순차적으로 불러오는 중입니다</div>
-    </div>
-
-    <div class="table-container" id="table-wrapper" style="display: none;">
-        <table id="stats-table">
-            <thead>
-                <tr>
-                    <th class="title-col" onclick="sortTable('title')">행사명 <span class="sort-icon" id="icon-title">↕</span></th>
-                    <th class="num-col" onclick="sortTable('detail')">상세정보 <span class="sort-icon" id="icon-detail">↕</span></th>
-                    <th class="num-col" onclick="sortTable('apply')">예약하기 <span class="sort-icon" id="icon-apply">↕</span></th>
-                    <th class="total-col" onclick="sortTable('total')">총 클릭수 <span class="sort-icon" id="icon-total">▼</span></th>
-                </tr>
-            </thead>
-            <tbody id="stats-body"></tbody>
-        </table>
-        <div class="helper-text">
-            메인사이트 기준 저장 규칙: <b>namespace = heycheongju_clicks_v1</b> / <b>hash = 16진법</b> / <b>key = {hash}_{type}</b>
-        </div>
-    </div>
+    <table id="stats-table" style="display: none;">
+        <thead>
+            <tr>
+                <th class="text-center" width="60">순위</th>
+                <th>행사명</th>
+                <th class="text-right" width="120">🔍 상세보기</th>
+                <th class="text-right" width="120">🔗 신청하기</th>
+                <th class="text-right" width="120">합계 (인기도)</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            </tbody>
+    </table>
 </div>
 
 <script>
-    // 메인사이트와 동일하게 맞춘 설정
     const namespace = 'heycheongju_clicks_v1';
-    let statsData = [];
-    let currentSort = { key: 'total', asc: false };
+    // 메인 페이지와 동일한 구글 시트 주소
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQV-02F-qXwS6yLb_XScKqwYj1N0qImwofY2Pyj2tvwnW0i1tl995_BjOfaVHpayppk6YYhqpdLrpa9/pub?output=csv";
 
-    // 메인사이트와 동일한 해시 로직 (16진법)
-    function getHashId(str) {
-        if (!str) return 'none';
+    // 원본 코드와 동일한 해시 생성 함수 (매우 중요: 이게 같아야 동일한 데이터를 불러옵니다)
+    function getHash(str) {
+        if (!str) return 'none'; 
         let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = ((hash << 5) - hash) + str.charCodeAt(i);
-            hash = hash & hash;
+        for (let i = 0; i < str.length; i++) { 
+            hash = ((hash << 5) - hash) + str.charCodeAt(i); 
+            hash = hash & hash; 
         }
-        return Math.abs(hash).toString(16);
+        return Math.abs(hash).toString(16); 
     }
 
-    // 메인사이트 클릭 추적 시 들어갈 수 있는 문자열 차이를 줄이기 위한 정규화
-    function normalizeTitle(title) {
-        return String(title || '')
-            .trim()
-            .replace(/&quot;/g, '"')
-            .replace(/\\'/g, "'")
-            .replace(/\\"/g, '"')
-            .replace(/\s+/g, ' ');
-    }
-
+    // 메인 페이지와 동일한 CSV 파싱 함수
     function parseCSVToJSON(csv) {
-        const rows = [];
-        let row = [];
-        let curr = '';
-        let insideQuotes = false;
-
+        const rows = []; let row = []; let curr = ''; let insideQuotes = false;
         for (let i = 0; i < csv.length; i++) {
-            const char = csv[i];
-            const nextChar = csv[i + 1];
-
-            if (char === '"' && insideQuotes && nextChar === '"') {
-                curr += '"';
-                i++;
-            } else if (char === '"') {
-                insideQuotes = !insideQuotes;
-            } else if (char === ',' && !insideQuotes) {
-                row.push(curr);
-                curr = '';
-            } else if ((char === '\n' || (char === '\r' && nextChar === '\n')) && !insideQuotes) {
-                row.push(curr);
-                rows.push(row);
-                row = [];
-                curr = '';
-                if (char === '\r') i++;
-            } else {
-                curr += char;
-            }
+            const char = csv[i]; const nextChar = csv[i + 1];
+            if (char === '"' && insideQuotes && nextChar === '"') { curr += '"'; i++; } 
+            else if (char === '"') { insideQuotes = !insideQuotes; } 
+            else if (char === ',' && !insideQuotes) { row.push(curr); curr = ''; } 
+            else if ((char === '\n' || (char === '\r' && nextChar === '\n')) && !insideQuotes) { row.push(curr); rows.push(row); row = []; curr = ''; if (char === '\r') i++; } 
+            else { curr += char; }
         }
-
-        if (curr !== '' || row.length > 0) {
-            row.push(curr);
-            rows.push(row);
-        }
-
+        if (curr !== '' || row.length > 0) { row.push(curr); rows.push(row); }
         if (rows.length < 2) return [];
-
-        const headers = rows[0].map(h => h.trim().replace(/[\r\n]+/g, ''));
-        const data = [];
-
+        const headers = rows[0].map(h => h.trim().replace(/[\r\n]+/g, '')); const data = [];
         for (let i = 1; i < rows.length; i++) {
-            if (rows[i].length === 1 && rows[i][0].trim() === '') continue;
-
+            if (rows[i].length === 1 && rows[i][0].trim() === '') continue; 
             const obj = {};
-            for (let j = 0; j < headers.length; j++) {
-                if (headers[j]) {
-                    obj[headers[j]] = rows[i][j] ? rows[i][j].trim().replace(/[\r\n]+$/, '') : '';
-                }
-            }
-
-            if (obj.title || obj['행사명'] || obj['제목']) {
-                data.push(obj);
-            }
+            for (let j = 0; j < headers.length; j++) { if (headers[j]) obj[headers[j]] = rows[i][j] ? rows[i][j].trim().replace(/[\r\n]+$/, '') : ''; }
+            if (obj.type || obj.title) data.push(obj);
         }
-
         return data;
     }
 
-    async function fetchClickCount(title, type) {
-        const normalizedTitle = normalizeTitle(title);
-        const key = `${getHashId(normalizedTitle)}_${type}`;
-
+    // 메인 실행 함수
+    async function initDashboard() {
         try {
-            const res = await fetch(`https://api.counterapi.dev/v1/${namespace}/${key}`);
-            if (!res.ok) return 0;
-            const data = await res.json();
-            return data.count || 0;
-        } catch (e) {
-            return 0;
-        }
-    }
-
-    async function loadStats() {
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('table-wrapper').style.display = 'none';
-
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQV-02F-qXwS6yLb_XScKqwYj1N0qImwofY2Pyj2tvwnW0i1tl995_BjOfaVHpayppk6YYhqpdLrpa9/pub?output=csv&_t=' + Date.now();
-
-        try {
-            const response = await fetch(csvUrl);
-            if (!response.ok) throw new Error('CSV 불러오기 실패');
-
+            // 1. 구글 시트 데이터 가져오기
+            const response = await fetch(csvUrl + "&_t=" + new Date().getTime());
+            if (!response.ok) throw new Error("CSV 다운로드 실패");
             const csvText = await response.text();
-            const events = parseCSVToJSON(csvText);
+            let eventData = parseCSVToJSON(csvText);
 
-            statsData = [];
+            // 제목 기준으로 중복 제거 (같은 제목의 행사가 여러 번 측정되는 것 방지)
+            const uniqueEvents = new Map();
+            eventData.forEach(item => {
+                if (item.title && item.title.trim() !== '') {
+                    // 메인 페이지의 trackEventClick에서 사용한 따옴표 치환 로직 반영
+                    const trackTitle = item.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    uniqueEvents.set(trackTitle, { title: item.title, trackTitle: trackTitle });
+                }
+            });
 
-            // 너무 빠른 호출로 누락/제한 걸리는 것 방지
-            const chunkSize = 3;
+            const eventsToFetch = Array.from(uniqueEvents.values());
+            const resultsData = [];
+            const statusBox = document.getElementById('status-message');
 
-            for (let i = 0; i < events.length; i += chunkSize) {
-                const chunk = events.slice(i, i + chunkSize);
+            // 2. 각 행사별로 클릭 통계 가져오기 (무료 API 부하 방지를 위해 순차적 호출)
+            for (let i = 0; i < eventsToFetch.length; i++) {
+                const item = eventsToFetch[i];
+                const hash = getHash(item.trackTitle);
+                
+                statusBox.innerHTML = `데이터 동기화 중... (${i + 1} / ${eventsToFetch.length}) ⏳`;
 
-                const fetchPromises = chunk.map(async (item) => {
-                    const eventTitle = normalizeTitle(item.title || item['행사명'] || item['제목']);
-                    if (!eventTitle) return;
+                let detailCount = 0;
+                let applyCount = 0;
 
-                    const [detailClicks, applyClicks] = await Promise.all([
-                        fetchClickCount(eventTitle, 'detail'),
-                        fetchClickCount(eventTitle, 'apply')
-                    ]);
+                try {
+                    const resDetail = await fetch(`https://api.counterapi.dev/v1/${namespace}/${hash}_detail`);
+                    if (resDetail.ok) detailCount = (await resDetail.json()).count;
+                } catch (e) {} // 아직 클릭된 적이 없으면 404 에러가 나므로 무시
 
-                    statsData.push({
-                        title: eventTitle,
-                        detail: detailClicks,
-                        apply: applyClicks,
-                        total: detailClicks + applyClicks
+                try {
+                    const resApply = await fetch(`https://api.counterapi.dev/v1/${namespace}/${hash}_apply`);
+                    if (resApply.ok) applyCount = (await resApply.json()).count;
+                } catch (e) {}
+
+                const total = detailCount + applyCount;
+                
+                // 클릭이 1번이라도 발생한 것만 목록에 추가
+                if (total > 0) {
+                    resultsData.push({
+                        title: item.title,
+                        detailCount: detailCount,
+                        applyCount: applyCount,
+                        totalCount: total
                     });
-                });
-
-                await Promise.all(fetchPromises);
-                await new Promise(resolve => setTimeout(resolve, 300));
+                }
             }
 
-            applySorting();
+            // 3. 총합 기준으로 내림차순(가장 인기있는 순) 정렬
+            resultsData.sort((a, b) => b.totalCount - a.totalCount);
+
+            // 4. 화면에 그리기
+            renderTable(resultsData);
+
         } catch (error) {
+            document.getElementById('status-message').innerHTML = '데이터를 불러오는 중 오류가 발생했습니다. 새로고침 해주세요. 😥';
+            document.getElementById('status-message').style.color = 'red';
             console.error(error);
-            document.getElementById('stats-body').innerHTML = `
-                <tr>
-                    <td colspan="4" class="empty-state">
-                        데이터를 불러오는데 실패했습니다.<br />
-                        잠시 후 다시 새로고침 해주세요.
-                    </td>
-                </tr>
-            `;
-        } finally {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('table-wrapper').style.display = 'block';
         }
     }
 
-    function applySorting() {
-        statsData.sort((a, b) => {
-            let diff = 0;
+    function renderTable(data) {
+        document.getElementById('status-message').style.display = 'none';
+        document.getElementById('stats-table').style.display = 'table';
+        const tbody = document.getElementById('table-body');
 
-            if (currentSort.key === 'title') {
-                diff = a.title.localeCompare(b.title, 'ko');
-            } else {
-                diff = b[currentSort.key] - a[currentSort.key];
-            }
-
-            if (currentSort.asc) diff *= -1;
-            if (diff === 0) return a.title.localeCompare(b.title, 'ko');
-            return diff;
-        });
-
-        updateSortIcons();
-        renderTable();
-    }
-
-    function sortTable(key) {
-        if (currentSort.key === key) {
-            currentSort.asc = !currentSort.asc;
-        } else {
-            currentSort.key = key;
-            currentSort.asc = (key === 'title');
-        }
-        applySorting();
-    }
-
-    function updateSortIcons() {
-        const keys = ['title', 'detail', 'apply', 'total'];
-
-        keys.forEach(k => {
-            const th = document.querySelector(`th[onclick="sortTable('${k}')"]`);
-            const icon = document.getElementById(`icon-${k}`);
-
-            if (currentSort.key === k) {
-                th.classList.add('active');
-                icon.textContent = currentSort.asc ? '▲' : '▼';
-            } else {
-                th.classList.remove('active');
-                icon.textContent = '↕';
-            }
-        });
-    }
-
-    function renderTable() {
-        const tbody = document.getElementById('stats-body');
-        tbody.innerHTML = '';
-
-        if (statsData.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="4" class="empty-state">표시할 통계 데이터가 없습니다.</td>
-                </tr>
-            `;
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="padding: 30px;">아직 버튼이 클릭된 행사 데이터가 없습니다.</td></tr>';
             return;
         }
 
-        statsData.forEach(item => {
+        data.forEach((item, index) => {
             const tr = document.createElement('tr');
+            const rankClass = index < 3 ? 'rank rank-top' : 'rank'; // 1~3위는 색상 강조
+            
             tr.innerHTML = `
-                <td class="title-col">${escapeHtml(item.title)}</td>
-                <td class="num-col">${item.detail.toLocaleString()}</td>
-                <td class="num-col">${item.apply.toLocaleString()}</td>
-                <td class="total-col">${item.total.toLocaleString()}</td>
+                <td class="text-center ${rankClass}">${index + 1}</td>
+                <td style="font-weight: 500;">${item.title}</td>
+                <td class="text-right"><span class="badge badge-detail">${item.detailCount}</span></td>
+                <td class="text-right"><span class="badge badge-apply">${item.applyCount}</span></td>
+                <td class="text-right"><span class="badge badge-total">${item.totalCount}</span></td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    function escapeHtml(str) {
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
-    document.addEventListener('DOMContentLoaded', loadStats);
+    // 페이지 로드 시 실행
+    document.addEventListener('DOMContentLoaded', initDashboard);
 </script>
 
 </body>
