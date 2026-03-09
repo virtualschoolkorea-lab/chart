@@ -91,25 +91,29 @@
             }
 
             const statResults = [];
-            const namespace = 'heycj_stats_v2'; // 🌟 V2 전용 새 방
+            // 현재 메인 웹사이트가 쓰고 있는 기존 방 이름 그대로 유지
+            const namespace = 'heycj_stats_v1'; 
             let scanned = 0;
 
             for (const event of events) {
                 const rawTitle = event.title;
                 if(!rawTitle) continue;
 
-                const hash = getHash(rawTitle);
+                // ✨ 가장 중요: 현재 메인 웹사이트 코드와 완벽하게 동일하게 따옴표 변환 후 해싱
+                const trackTitle = rawTitle.replace(/'/g, "\\'");
+                const hash = getHash(trackTitle);
+                
                 let detailCount = 0;
                 let applyCount = 0;
 
-                // 🌟 서버 차단을 막기 위해 V2 주소 사용 및 0.1초 쉬어가기
+                // 메인 웹사이트가 보내는 v1 주소 그대로 읽기
                 try {
-                    const resDetail = await fetch(`https://api.counterapi.dev/v2/${namespace}/evt_${hash}_detail`);
+                    const resDetail = await fetch(`https://api.counterapi.dev/v1/${namespace}/evt_${hash}_detail`);
                     if(resDetail.ok) { const d = await resDetail.json(); detailCount = d.count; }
                 } catch(e) {}
                 
                 try {
-                    const resApply = await fetch(`https://api.counterapi.dev/v2/${namespace}/evt_${hash}_apply`);
+                    const resApply = await fetch(`https://api.counterapi.dev/v1/${namespace}/evt_${hash}_apply`);
                     if(resApply.ok) { const d = await resApply.json(); applyCount = d.count; }
                 } catch(e) {}
 
@@ -120,7 +124,8 @@
                     statResults.push({ title: rawTitle, detailCount, applyCount, total: detailCount + applyCount });
                 }
 
-                await new Promise(resolve => setTimeout(resolve, 100)); // 휴식
+                // 서버 차단을 막는 0.1초 휴식시간
+                await new Promise(resolve => setTimeout(resolve, 100)); 
             }
 
             statResults.sort((a, b) => b.total - a.total);
