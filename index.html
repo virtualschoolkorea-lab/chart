@@ -1,644 +1,1268 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>헤이청주 관리자 대시보드 - 클릭 통계</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet" />
-    <style>
-        :root {
-            --bg: #f5f7fb;
-            --card: #ffffff;
-            --text: #222;
-            --sub: #666;
-            --line: #e5e7eb;
-            --primary: #2e7d32;
-            --primary-soft: #e8f5e9;
-            --danger: #d32f2f;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>가상융합교육협회 | XR Education Association</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800;900&display=swap');
 
-        * { box-sizing: border-box; }
+    :root {
+      --bg: #07111f;
+      --bg-soft: #0d1a2b;
+      --surface: rgba(17, 27, 46, 0.9);
+      --surface-strong: #12233a;
+      --primary: #6df3ea;
+      --primary-strong: #43d4ca;
+      --secondary: #8fb7ff;
+      --text: #f5f8ff;
+      --muted: #afbdd3;
+      --line: rgba(255, 255, 255, 0.09);
+      --shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --container: 1200px;
+      --nav-height: 72px;
+      --tab-height: 82px;
+    }
 
-        body {
-            margin: 0;
-            font-family: 'Noto Sans KR', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
 
-        .wrap {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 24px 16px 48px;
-        }
+    html {
+      scroll-behavior: smooth;
+    }
 
-        .topbar {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
-        }
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(109, 243, 234, 0.14), transparent 26%),
+        radial-gradient(circle at top right, rgba(143, 183, 255, 0.13), transparent 22%),
+        linear-gradient(180deg, #06101b 0%, #091321 100%);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: calc(var(--tab-height) + 18px);
+    }
 
-        h1 {
-            margin: 0;
-            font-size: 1.6rem;
-            font-weight: 800;
-        }
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
 
-        .sub {
-            color: var(--sub);
-            font-size: 0.92rem;
-            margin-top: 6px;
-        }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
-        .actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
 
-        .btn {
-            border: 1px solid var(--line);
-            background: #fff;
-            padding: 10px 14px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 700;
-        }
+    .container {
+      width: min(var(--container), calc(100% - 32px));
+      margin: 0 auto;
+    }
 
-        .btn.primary {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: #fff;
-        }
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      height: var(--nav-height);
+      backdrop-filter: blur(16px);
+      background: rgba(6, 12, 22, 0.78);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
 
-        .controls, .summary {
-            background: var(--card);
-            border: 1px solid var(--line);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
+    .top-nav-inner {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
 
-        .controls-grid {
-            display: grid;
-            grid-template-columns: 1.5fr 1fr 1fr 1fr;
-            gap: 10px;
-        }
+    .brand {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
 
-        .control label {
-            display: block;
-            font-size: 0.82rem;
-            color: var(--sub);
-            margin-bottom: 6px;
-            font-weight: 700;
-        }
+    .brand-kor {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
 
-        .control input, .control select {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid var(--line);
-            background: #fff;
-            font-family: inherit;
-            font-size: 0.95rem;
-        }
+    .brand-eng {
+      font-size: 0.78rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-        }
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
 
-        .stat-card {
-            background: var(--card);
-            border: 1px solid var(--line);
-            border-radius: 16px;
-            padding: 16px;
-        }
+    .nav-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 700;
+      transition: 0.25s ease;
+    }
 
-        .stat-label {
-            color: var(--sub);
-            font-size: 0.85rem;
-            margin-bottom: 6px;
-            font-weight: 700;
-        }
+    .nav-links a:hover,
+    .nav-links a:focus-visible {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+    }
 
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 800;
-        }
+    .hero {
+      padding: 72px 0 56px;
+    }
 
-        .table-wrap {
-            background: var(--card);
-            border: 1px solid var(--line);
-            border-radius: 16px;
-            overflow: hidden;
-        }
+    .hero-card {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 28px;
+      align-items: stretch;
+      padding: 32px;
+      border: 1px solid rgba(109, 243, 234, 0.18);
+      border-radius: 32px;
+      background: linear-gradient(135deg, rgba(15, 28, 46, 0.95), rgba(10, 19, 31, 0.96));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
 
-        .table-head {
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--line);
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -10% -40% auto;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(109, 243, 234, 0.16), transparent 70%);
+      pointer-events: none;
+    }
 
-        .table-scroll {
-            overflow: auto;
-        }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border: 1px solid rgba(109, 243, 234, 0.2);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(109, 243, 234, 0.08);
+      margin-bottom: 18px;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 1050px;
-        }
+    .hero h1 {
+      font-size: clamp(2rem, 4vw, 4.4rem);
+      line-height: 1.08;
+      letter-spacing: -0.04em;
+      margin-bottom: 18px;
+      /* 타이틀 강조를 위한 네온 텍스트 섀도우 추가 */
+      text-shadow: 0 0 20px rgba(109, 243, 234, 0.4), 0 4px 10px rgba(0,0,0,0.5);
+    }
 
-        th, td {
-            padding: 12px 14px;
-            border-bottom: 1px solid var(--line);
-            text-align: left;
-            vertical-align: top;
-            font-size: 0.92rem;
-        }
+    .hero h1 span {
+      display: block;
+      color: var(--primary);
+    }
 
-        th {
-            background: #fafafa;
-            color: #444;
-            font-size: 0.84rem;
-            position: sticky;
-            top: 0;
-            z-index: 1;
-        }
+    .hero .association-en {
+      font-size: clamp(1rem, 1.4vw, 1.2rem);
+      color: var(--secondary);
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
 
-        tr:hover td {
-            background: #fcfcfc;
-        }
+    .hero .lead {
+      max-width: 720px;
+      color: var(--muted);
+      font-size: 1.02rem;
+      margin-bottom: 24px;
+    }
 
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 999px;
-            font-size: 0.74rem;
-            font-weight: 800;
-            background: var(--primary-soft);
-            color: var(--primary);
-        }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
 
-        .muted { color: var(--sub); }
-        .danger { color: var(--danger); }
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 14px 20px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+    }
 
-        .loading, .empty {
-            padding: 28px 16px;
-            text-align: center;
-            color: var(--sub);
-        }
+    .btn:hover,
+    .btn:focus-visible {
+      transform: translateY(-2px);
+    }
 
-        .title-cell {
-            font-weight: 700;
-            line-height: 1.45;
-        }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+      color: #062126;
+      box-shadow: 0 12px 30px rgba(67, 212, 202, 0.24);
+    }
 
-        .small {
-            font-size: 0.8rem;
-            color: var(--sub);
-            margin-top: 4px;
-            word-break: break-all;
-        }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
 
-        @media (max-width: 900px) {
-            .controls-grid,
-            .cards {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
+    .btn-secondary:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
 
-        @media (max-width: 640px) {
-            .controls-grid,
-            .cards {
-                grid-template-columns: 1fr;
-            }
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
 
-            h1 {
-                font-size: 1.3rem;
-            }
-        }
-    </style>
+    .metric {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 1.2rem;
+      color: var(--primary);
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .hero-visual {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .hero-image {
+      min-height: 100%;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-image img {
+      height: 100%;
+      min-height: 360px;
+      object-fit: cover;
+    }
+
+    .hero-quote {
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+
+    .section {
+      padding: 36px 0 60px; /* 여백 조정 */
+      scroll-margin-top: calc(var(--nav-height) + 14px);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .section-head h2 {
+      font-size: clamp(1.7rem, 3vw, 2.6rem);
+      line-height: 1.16;
+      letter-spacing: -0.03em;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      max-width: 620px;
+    }
+
+    .section-shell {
+      background: rgba(12, 21, 35, 0.78);
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      padding: 26px;
+      box-shadow: var(--shadow);
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.025));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 22px;
+      overflow: hidden;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-body {
+      padding: 22px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card h3 {
+      font-size: 1.18rem;
+      line-height: 1.35;
+      margin-bottom: 10px;
+    }
+
+    .card p,
+    .card li,
+    .detail-list li {
+      color: var(--muted);
+      font-size: 0.96rem;
+      flex-grow: 1;
+    }
+
+    .thumb {
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: #0a1422;
+    }
+
+    .thumb img {
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .card:hover .thumb img {
+        transform: scale(1.05);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      background: rgba(109, 243, 234, 0.1);
+      color: var(--primary);
+      margin-bottom: 12px;
+      align-self: flex-start;
+    }
+
+    .detail-list {
+      list-style: none;
+      display: grid;
+      gap: 12px;
+    }
+
+    .detail-list li {
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .detail-list li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--primary);
+    }
+
+    .split-layout {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 18px;
+    }
+
+    .highlight-box {
+      padding: 22px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(109, 243, 234, 0.09), rgba(143, 183, 255, 0.08));
+      border: 1px solid rgba(109, 243, 234, 0.18);
+    }
+
+    .highlight-box h3 {
+      margin-bottom: 10px;
+      font-size: 1.22rem;
+    }
+
+    .inline-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .inline-actions .btn {
+        flex: 1;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field,
+    .form-grid textarea,
+    .form-grid select {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      padding: 15px 16px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .field option {
+        background-color: var(--surface-strong);
+        color: var(--text);
+    }
+
+    textarea.field {
+      min-height: 150px;
+      resize: vertical;
+    }
+
+    .field:focus,
+    .form-grid textarea:focus,
+    .form-grid select:focus {
+      border-color: rgba(109, 243, 234, 0.55);
+      box-shadow: 0 0 0 4px rgba(109, 243, 234, 0.08);
+    }
+
+    .span-2 {
+      grid-column: span 2;
+    }
+
+    /* Sponsors List */
+    .sponsor-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: center;
+    }
+    .sponsor-item {
+        padding: 16px 28px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        font-weight: 700;
+        color: var(--muted);
+        text-align: center;
+        transition: 0.3s ease;
+    }
+    .sponsor-item:hover {
+        border-color: var(--primary);
+        color: var(--text);
+        background: rgba(109, 243, 234, 0.05);
+    }
+
+    /* Modal System */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .modal-overlay.show {
+        display: flex;
+        opacity: 1;
+    }
+    .modal-content {
+        background: var(--surface-strong);
+        border: 1px solid var(--primary-strong);
+        border-radius: var(--radius-lg);
+        padding: 32px 24px;
+        width: 100%;
+        max-width: 420px;
+        position: relative;
+        box-shadow: var(--shadow);
+        transform: translateY(20px);
+        transition: transform 0.3s ease;
+        text-align: center;
+    }
+    .modal-overlay.show .modal-content {
+        transform: translateY(0);
+    }
+    .modal-close {
+        position: absolute;
+        top: 16px;
+        right: 20px;
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 1.8rem;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    .modal-close:hover {
+        color: var(--text);
+    }
+    .modal-title {
+        color: var(--primary);
+        font-size: 1.4rem;
+        margin-bottom: 16px;
+    }
+    .modal-desc {
+        color: var(--text);
+        font-size: 0.95rem;
+        margin-bottom: 24px;
+        word-break: keep-all;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+      animation: fadeUp 0.28s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bottom-tabs {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1200;
+      background: rgba(6, 12, 22, 0.9);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    }
+
+    .bottom-tabs-inner {
+      width: min(980px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .tab-btn {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      min-height: 58px;
+      border-radius: 18px;
+      padding: 10px 12px;
+      font-size: 0.92rem;
+      line-height: 1.25;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s ease;
+      word-break: keep-all;
+    }
+
+    .tab-btn.active {
+      color: #072028;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-color: transparent;
+      box-shadow: 0 12px 30px rgba(109, 243, 234, 0.18);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    footer {
+      padding: 28px 0 8px;
+    }
+
+    .footer-box {
+      padding: 24px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .footer-box p {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 1024px) {
+      .hero-card,
+      .split-layout,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .hero-image img {
+        min-height: 280px;
+      }
+      .top-nav {
+        height: auto;
+        min-height: var(--nav-height);
+      }
+      .top-nav-inner {
+        padding: 14px 0;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .nav-links {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding-bottom: 112px;
+      }
+      .container {
+        width: min(100% - 20px, var(--container));
+      }
+      .hero {
+        padding-top: 34px;
+      }
+      .hero-card,
+      .section-shell {
+        padding: 18px;
+        border-radius: 22px;
+      }
+      .section {
+        padding: 22px 0 50px;
+      }
+      .section-head {
+        align-items: flex-start;
+        flex-direction: column;
+        margin-bottom: 18px;
+      }
+      .hero-metrics,
+      .form-grid,
+      .bottom-tabs-inner {
+        grid-template-columns: 1fr 1fr;
+      }
+      .span-2 {
+        grid-column: span 2;
+      }
+      .nav-links {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%;
+        gap: 8px;
+      }
+      .nav-links a {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        text-align: center;
+      }
+      .tab-btn {
+        min-height: 60px;
+        font-size: 0.87rem;
+      }
+      .inline-actions {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+      .hero-metrics,
+      .form-grid,
+      .bottom-tabs-inner,
+      .nav-links {
+        grid-template-columns: 1fr;
+      }
+      .span-2 {
+        grid-column: span 1;
+      }
+      .btn {
+        width: 100%;
+      }
+      .hero-actions {
+        flex-direction: column;
+      }
+      .brand-eng {
+        white-space: normal;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="wrap">
-        <div class="topbar">
-            <div>
-                <h1>헤이청주 관리자 대시보드</h1>
-                <div class="sub" id="last-updated">불러오는 중...</div>
+  <nav class="top-nav">
+    <div class="container top-nav-inner">
+      <a href="#top" class="brand">
+        <span class="brand-kor">가상융합교육협회</span>
+        <span class="brand-eng">XR Education Association, XREA</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#" data-switch-tab="a">협회 소개</a></li>
+        <li><a href="#" data-switch-tab="b">연수/스터디</a></li>
+        <li><a href="#" data-switch-tab="c">콘텐츠/장비</a></li>
+        <li><a href="#" data-switch-tab="d">가입/문의</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="top">
+    <section class="hero tab-panel active" id="tab-a" data-tab-panel="a">
+      <div class="container">
+        <div class="hero-card">
+          <div>
+            <div class="eyebrow">XR · AI · Metaverse · Teacher Network</div>
+            <h1>
+              가상융합교육협회
+              <span>경험의 경계를 넘나드는 교육</span>
+            </h1>
+            <p class="association-en">XR Education Association, XREA</p>
+            <p class="lead">
+              가상융합교육협회는 XR, 메타버스, AI 기반 교육 실천을 연결하는 현장 교사 중심의 네트워크입니다. 우리는 기술을 보여주는 교육이 아니라, 배움의 깊이를 넓히는 진짜 교육을 설계합니다.
+            </p>
+            <div class="hero-actions">
+              <button class="btn btn-primary" data-switch-tab="b">스터디/연수 신청</button>
+              <button class="btn btn-secondary" data-switch-tab="d">협업 및 컨설팅 문의</button>
             </div>
-            <div class="actions">
-                <button class="btn" id="btn-export">CSV 내보내기</button>
-                <button class="btn primary" id="btn-refresh">새로고침</button>
+            <div class="hero-metrics">
+              <div class="metric">
+                <strong>100+</strong>
+                <span>지도안/실천 사례</span>
+              </div>
+              <div class="metric">
+                <strong>500+</strong>
+                <span>행사 참여 교원</span>
+              </div>
+              <div class="metric">
+                <strong>XREA</strong>
+                <span>실감형 교육 생태계</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-visual">
+            <div class="hero-image">
+              <img src="https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?auto=format&fit=crop&w=1200&q=80" alt="VR 헤드셋을 착용한 교육 환경" />
+            </div>
+            <div class="hero-quote">
+              “Beyond the Area, Real Learning”<br>구 'XR메타버스교사협회'가 새로운 이름으로 도약합니다.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="tab-panel active" data-tab-panel="a">
+      
+      <section class="section" id="overview">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <h2>협회 소개</h2>
+            </div>
+            <p>현장 교사와 교육 파트너가 함께 만드는 혁신적인 교육 생태계입니다.</p>
+          </div>
+          <div class="section-shell split-layout">
+            <div class="card">
+              <div class="thumb">
+                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80" alt="디지털 협업 교육 이미지" />
+              </div>
+              <div class="card-body">
+                <span class="tag">Association Story</span>
+                <h3>학교 현장에서 시작된 가상융합교육 네트워크</h3>
+                <p>
+                  가상융합교육협회(XREA)는 기존 'XR메타버스교사협회'의 실천 기반을 확장하여, 공간컴퓨팅 및 가상융합기술을 공교육에 가장 실효성 있게 도입하고 연구하는 비영리 단체입니다.
+                </p>
+              </div>
+            </div>
+            <div class="highlight-box">
+              <h3>우리가 만드는 변화</h3>
+              <ul class="detail-list">
+                <li>현장 교사가 바로 적용할 수 있는 연수와 수업 사례 발굴</li>
+                <li>스터디와 연구회를 통한 지속적인 실천 공동체 운영</li>
+                <li>안전성을 검증한 협회 인증 콘텐츠 및 장비 활용 모델 제시</li>
+                <li>학교·기관·기업 간 협업을 통한 미래 교육 혁신 프로젝트 발굴</li>
+              </ul>
+              <div class="inline-actions">
+                <button class="btn btn-primary" data-switch-tab="b">스터디 신청하기</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="news">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <h2>가상융합교육 최신동향</h2>
+            </div>
+            <p>협회의 최근 활동 및 학교 현장의 메타버스·XR 적용 소식을 전해드립니다.</p>
+          </div>
+          <div class="section-shell">
+            <div class="grid grid-3">
+              <article class="card">
+                <div class="thumb"><img src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=1200&q=80" alt="회의와 컨퍼런스 이미지" /></div>
+                <div class="card-body">
+                  <span class="tag">News</span>
+                  <h3>2026 공교육 메타버스 활용 가이드라인 배포</h3>
+                  <p>교육부와 연계하여 학교 현장에 맞는 플랫폼 활용 및 안전 운영 가이드라인을 전국에 배포했습니다.</p>
+                </div>
+              </article>
+              <article class="card">
+                <div class="thumb"><img src="https://images.unsplash.com/photo-1593508512255-86ab42a8e620?auto=format&fit=crop&w=1200&q=80" alt="발표와 세미나 이미지" /></div>
+                <div class="card-body">
+                  <span class="tag">Conference</span>
+                  <h3>제 4회 XR 기반 에듀테크 컨퍼런스 성료</h3>
+                  <p>실감형 과학·역사 수업 사례와 장비 운영 노하우를 공유하며 교사 500명 이상이 참여했습니다.</p>
+                </div>
+              </article>
+              <article class="card">
+                <div class="thumb"><img src="https://images.unsplash.com/photo-1503676382389-4809596d5290?auto=format&fit=crop&w=1200&q=80" alt="학생과 디지털 학습 이미지" /></div>
+                <div class="card-body">
+                  <span class="tag">Partnership</span>
+                  <h3>디지털 선도학교 연계 교원 연수 전담 기관 선정</h3>
+                  <p>공간컴퓨팅과 실감형 기술 부문 선도학교 교원 연수 및 운영 모델 고도화를 전담 지원합니다.</p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="programs-preview">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <h2>교사 스터디 매칭</h2>
+            </div>
+            <p>전국의 교육 혁신가들과 함께 연구하고 성장하세요.</p>
+          </div>
+          <div class="section-shell">
+            <div class="grid grid-2">
+              <div class="card">
+                <div class="card-body">
+                  <span class="tag">Study</span>
+                  <h3>초등 VR기기 활용 연구회</h3>
+                  <p>초등학교 3~6학년 대상 HMD 기기 활용 교과 융합 수업 모델 연구 및 지도안 개발</p>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <span class="tag">Study</span>
+                  <h3>AI & 메타버스 융합 스터디</h3>
+                  <p>생성형 AI로 3D 에셋을 만들고 메타버스 플랫폼에 적용하는 실무 기술 스터디 (매주 목요일)</p>
+                </div>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 24px;">
+              <button class="btn btn-secondary" style="padding-left:40px; padding-right:40px;" data-switch-tab="b">스터디 및 연수 전체보기 +</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="solutions-preview">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <h2>협회인증 콘텐츠/장비</h2>
+            </div>
+            <p>XREA 소속 교사들이 교육 현장에서 직접 안정성과 실효성을 검증한 우수 장비와 솔루션입니다.</p>
+          </div>
+          <div class="section-shell">
+            <div class="grid grid-2">
+              <div class="card">
+                <div class="thumb"><img src="https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=1200&q=80" alt="역사 탐험" /></div>
+                <div class="card-body">
+                  <span class="tag">Certified Content</span>
+                  <h3>V-History (가상 역사 탐험)</h3>
+                  <p>역사적 사건의 현장을 3D로 복원하여 학생들이 아바타로 직접 체험할 수 있는 공동개발 교육 솔루션</p>
+                </div>
+              </div>
+              <div class="card">
+                <div class="thumb"><img src="https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=1200&q=80" alt="VR 장비" /></div>
+                <div class="card-body">
+                  <span class="tag">Certified Device</span>
+                  <h3>Meta Quest 3 (교육용 패키지)</h3>
+                  <p>기기 통합 관리 솔루션(MDM)이 포함되어 학교 현장 도입 안정성을 검증받은 베스트셀러</p>
+                </div>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 24px;">
+              <button class="btn btn-secondary" style="padding-left:40px; padding-right:40px;" data-switch-tab="c">인증 콘텐츠/장비 더보기 +</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="sponsors">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <h2>함께하는 후원사</h2>
+            </div>
+          </div>
+          <div class="section-shell" style="background: rgba(12, 21, 35, 0.4);">
+            <div class="sponsor-list">
+              <div class="sponsor-item">META EDU KOREA</div>
+              <div class="sponsor-item">Tech-Vision Inc.</div>
+              <div class="sponsor-item">미래교육연구소</div>
+              <div class="sponsor-item">한국 VR/AR 융합진흥원</div>
+              <div class="sponsor-item">Edu-Verse Studio</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <section class="section tab-panel" id="tab-b" data-tab-panel="b">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>스터디 / 연수 신청</h2>
+          </div>
+          <p>관심 주제, 참여 목적, 희망 형태를 남기면 적합한 프로그램으로 연결해 드립니다.</p>
+        </div>
+        
+        <div class="section-shell" style="margin-bottom: 40px;">
+            <h3 style="margin-bottom: 20px;">모집중인 교원 연수 프로그램</h3>
+            <div class="grid grid-2">
+              <div class="card">
+                <div class="thumb"><img src="https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=1200&q=80" alt="연수 프로그램 이미지" /></div>
+                <div class="card-body">
+                  <span class="tag">Teacher Training</span>
+                  <h3>[기초] 메타버스 플랫폼 활용 100%</h3>
+                  <p>젭(ZEP), 스페이셜 등 대중적인 플랫폼을 활용한 직관적인 수업 공간 설계와 학생 참여 활동 구성 팁.</p>
+                </div>
+              </div>
+              <div class="card">
+                <div class="thumb"><img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80" alt="콘텐츠 제작 이미지" /></div>
+                <div class="card-body">
+                  <span class="tag">Advanced Lab</span>
+                  <h3>[심화] 언리얼/유니티 XR 콘텐츠 제작</h3>
+                  <p>엔진 기초 및 코스페이시스를 연계하여 나만의 3D 실감형 교육 콘텐츠를 제작하고 수업에 적용하는 마스터 과정.</p>
+                </div>
+              </div>
             </div>
         </div>
 
-        <section class="controls">
-            <div class="controls-grid">
-                <div class="control">
-                    <label for="searchInput">검색</label>
-                    <input id="searchInput" type="text" placeholder="행사명, 장소, 지역 검색" />
-                </div>
-
-                <div class="control">
-                    <label for="typeFilter">탭 유형</label>
-                    <select id="typeFilter">
-                        <option value="">전체</option>
-                        <option value="ongoing">사전예약 중</option>
-                        <option value="always">상시/현장접수</option>
-                        <option value="affiliate">제휴/이벤트</option>
-                    </select>
-                </div>
-
-                <div class="control">
-                    <label for="sortFilter">정렬</label>
-                    <select id="sortFilter">
-                        <option value="total_desc">총 클릭수 높은순</option>
-                        <option value="apply_desc">신청하기 높은순</option>
-                        <option value="detail_desc">상세보기 높은순</option>
-                        <option value="title_asc">행사명 가나다순</option>
-                    </select>
-                </div>
-
-                <div class="control">
-                    <label for="conditionFilter">조건</label>
-                    <select id="conditionFilter">
-                        <option value="">전체</option>
-                        <option value="clicked">클릭 있는 행사만</option>
-                        <option value="unclicked">클릭 0인 행사만</option>
-                    </select>
-                </div>
+        <div class="section-shell split-layout">
+          <div class="card">
+            <div class="thumb">
+              <img src="https://images.unsplash.com/photo-1516321165247-4aa89a48be28?auto=format&fit=crop&w=1200&q=80" alt="온라인 학습 커뮤니티 이미지" />
             </div>
-        </section>
-
-        <section class="summary">
-            <div class="cards">
-                <div class="stat-card">
-                    <div class="stat-label">전체 행사 수</div>
-                    <div class="stat-value" id="stat-events">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">상세보기 총 클릭</div>
-                    <div class="stat-value" id="stat-detail">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">신청하기 총 클릭</div>
-                    <div class="stat-value" id="stat-apply">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">전체 총 클릭</div>
-                    <div class="stat-value" id="stat-total">0</div>
-                </div>
+            <div class="card-body">
+              <span class="tag">Apply Now</span>
+              <h3>이런 분께 추천합니다</h3>
+              <ul class="detail-list">
+                <li>XR/메타버스 수업을 처음 시작하는 교사</li>
+                <li>연수 이후 지속적인 실천 공동체가 필요한 분</li>
+                <li>동료 교사와 프로젝트형 연구를 함께 진행하고 싶은 분</li>
+                <li>학교 맞춤형 연수 또는 기관 단위 프로그램을 찾는 분</li>
+              </ul>
             </div>
-        </section>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <span class="tag">Form</span>
+              <h3>신청 정보</h3>
+              <form class="form-grid">
+                <input class="field" type="text" placeholder="이름" required />
+                <input class="field" type="text" placeholder="학교 / 기관명" required />
+                <input class="field" type="email" placeholder="이메일" required />
+                <input class="field" type="text" placeholder="연락처" />
+                <select class="field">
+                  <option>희망 분야 선택</option>
+                  <option>초등 VR기기 활용 연구회 (스터디)</option>
+                  <option>AI & 메타버스 융합 스터디 (스터디)</option>
+                  <option>메타버스 플랫폼 기초 (연수)</option>
+                  <option>XR 콘텐츠 심화 (연수)</option>
+                </select>
+                <select class="field">
+                  <option>희망 운영 방식</option>
+                  <option>온라인</option>
+                  <option>오프라인</option>
+                  <option>혼합형</option>
+                </select>
+                <textarea class="field span-2" placeholder="관심 주제나 궁금한 점을 적어주세요."></textarea>
+                <button class="btn btn-primary span-2" type="button" onclick="alert('신청이 완료되었습니다.')">신청서 보내기</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <section class="table-wrap">
-            <div class="table-head">
-                <span>행사별 클릭 통계</span>
-                <span class="muted" id="resultCount">0건</span>
+    <section class="section tab-panel" id="tab-c" data-tab-panel="c">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>협회 공동개발 솔루션</h2>
+          </div>
+          <p>교사와 파트너가 공동으로 기획하고 현장 적용을 마친 실감형 교육 콘텐츠입니다.</p>
+        </div>
+        <div class="section-shell" style="margin-bottom: 50px;">
+          <div class="grid grid-2">
+            <article class="card">
+              <div class="thumb"><img src="https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=1200&q=80" alt="V-History" /></div>
+              <div class="card-body">
+                <span class="tag">Solution</span>
+                <h3>V-History (가상 역사 탐험)</h3>
+                <p>역사적 사건의 현장을 3D 환경으로 재구성하여 학생들이 아바타로 참여해 탐험형 과제를 수행할 수 있는 솔루션입니다. 교사 제어 패널이 포함되어 있습니다.</p>
+              </div>
+            </article>
+            <article class="card">
+              <div class="thumb"><img src="https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=1200&q=80" alt="XR-Lab" /></div>
+              <div class="card-body">
+                <span class="tag">Solution</span>
+                <h3>XR-Lab (실감형 과학 실험실)</h3>
+                <p>실험실 안전 사고의 위험 없이, 물리/화학 실험을 핸드 트래킹 기술을 통해 가상 공간에서 반복 학습할 수 있는 몰입형 관찰 환경을 제공합니다.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <div>
+            <h2>협회인증 추천 장비</h2>
+          </div>
+          <p>학교 현장에 안전하게 도입하고 일괄 관리할 수 있도록 검증된 추천 장비입니다.</p>
+        </div>
+        <div class="section-shell">
+          <div class="grid grid-2">
+            <article class="card">
+              <div class="thumb"><img src="https://images.unsplash.com/photo-1593508512255-86ab42a8e620?auto=format&fit=crop&w=1200&q=80" alt="VR 헤드셋 이미지" /></div>
+              <div class="card-body">
+                <span class="tag">Certified Device</span>
+                <h3>Meta Quest 3 (교육용 통합 패키지)</h3>
+                <p>여러 대의 기기를 한 번에 업데이트하고 앱을 설치할 수 있는 MDM(기기 관리 솔루션)이 결합된 학교 맞춤형 베스트셀러입니다.</p>
+                <div class="inline-actions">
+                  <button class="btn btn-secondary" onclick="openModal('Meta Quest 3 (교육용) 상세정보', '본 패키지는 1대의 태블릿으로 최대 30대의 퀘스트 기기 화면을 모니터링하고 제어할 수 있는 MDM 소프트웨어를 포함합니다. 또한 여러 명이 돌려쓸 때 위생을 지킬 수 있는 실리콘 안면 폼과 대용량 자외선 충전/소독함이 기본 구성으로 제공됩니다.')">상세보기</button>
+                  <button class="btn btn-primary" data-switch-tab="d">도입문의</button>
+                </div>
+              </div>
+            </article>
+            <article class="card">
+              <div class="thumb"><img src="https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=1200&q=80" alt="AR 글래스" /></div>
+              <div class="card-body">
+                <span class="tag">Certified Device</span>
+                <h3>Edu-AR 초경량 스마트 글래스</h3>
+                <p>무게가 가벼워 장시간 수업에도 어린 학생들의 피로도를 최소화하며 증강현실 도감 관찰에 최적화된 기기입니다.</p>
+                <div class="inline-actions">
+                  <button class="btn btn-secondary" onclick="openModal('Edu-AR 글래스 상세정보', '무게 단 80g으로 안경처럼 가볍게 착용할 수 있습니다. 스마트폰이나 태블릿과 C타입 케이블로 바로 연결되어 복잡한 세팅 없이 즉각적으로 AR 수업을 진행할 수 있으며, 렌즈 너머로 실제 교실 환경을 동시에 볼 수 있어 학생 통제가 용이합니다.')">상세보기</button>
+                  <button class="btn btn-primary" data-switch-tab="d">도입문의</button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tab-panel" id="tab-d" data-tab-panel="d">
+      <div class="container">
+        <div class="section-head" id="contact">
+          <div>
+            <h2>가입 및 협업 문의</h2>
+          </div>
+          <p>원하시는 항목(회원가입 또는 컨설팅/제휴)을 선택하여 남겨주세요.</p>
+        </div>
+        
+        <div class="section-shell">
+          <div class="grid grid-2">
+            
+            <div class="card" style="border-color: rgba(109, 243, 234, 0.4);">
+              <div class="card-body">
+                <span class="tag" style="background: rgba(143, 183, 255, 0.15); color: var(--secondary);">Member Join</span>
+                <h3 style="margin-bottom: 20px; font-size: 1.4rem;">협회 교사 회원 가입</h3>
+                <p style="margin-bottom: 30px;">가상융합교육을 실천하고자 하는 전국의 교육 현장 선생님들의 가입을 환영합니다. 연구회 참여 및 각종 연수 우선권이 부여됩니다.</p>
+                
+                <form class="form-grid" style="display:flex; flex-direction:column; gap:16px;">
+                  <input class="field" type="text" placeholder="선생님 성함" required />
+                  <input class="field" type="text" placeholder="소속 학교명" required />
+                  <input class="field" type="email" placeholder="학교/공직자 이메일 주소" required />
+                  <input class="field" type="text" placeholder="담당 과목 (선택)" />
+                  <button class="btn btn-secondary" style="margin-top: 10px;" type="button" onclick="alert('가입 신청이 완료되었습니다.')">가입 신청하기</button>
+                </form>
+              </div>
             </div>
 
-            <div class="table-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>행사명</th>
-                            <th>유형</th>
-                            <th>지역</th>
-                            <th>장소</th>
-                            <th>상세보기</th>
-                            <th>신청하기</th>
-                            <th>총 클릭</th>
-                            <th>카운터 키</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <tr>
-                            <td colspan="8" class="loading">데이터를 불러오는 중입니다...</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="card">
+              <div class="card-body">
+                <span class="tag">Inquiry & Partnership</span>
+                <h3 style="margin-bottom: 20px; font-size: 1.4rem;">에듀테크 컨설팅 및 제휴 요청</h3>
+                <p style="margin-bottom: 30px;">학교 현장 단위의 장비 도입 컨설팅, 기업의 솔루션 제휴 제안, 행사 협업 등에 대한 문의를 남겨주세요.</p>
+                
+                <form class="form-grid" style="display:flex; flex-direction:column; gap:16px;">
+                  <select class="field">
+                    <option>문의 유형 선택</option>
+                    <option>학교 단위 맞춤형 컨설팅</option>
+                    <option>기업 솔루션/장비 제휴</option>
+                    <option>행사 및 포럼 공동 기획</option>
+                    <option>기타</option>
+                  </select>
+                  <input class="field" type="text" placeholder="기관명 / 기업명" required />
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                      <input class="field" type="text" placeholder="담당자 성함" required />
+                      <input class="field" type="text" placeholder="연락처" required />
+                  </div>
+                  <textarea class="field" style="min-height: 120px;" placeholder="문의 내용이나 제안하실 내용을 구체적으로 적어주세요."></textarea>
+                  <button class="btn btn-primary" style="margin-top: 10px;" type="button" onclick="alert('문의가 접수되었습니다. 담당자가 확인 후 연락드리겠습니다.')">문의/요청 보내기</button>
+                </form>
+              </div>
             </div>
-        </section>
+
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-box">
+        <div>
+          <strong style="font-size: 1.1rem; color: #fff;">가상융합교육협회 (XR Education Association, XREA)</strong>
+          <p style="margin-top: 4px;">경험의 경계를 넘나드는 교육 · Beyond the Area, Real Learning</p>
+          <p style="margin-top: 4px; font-size: 0.85rem; opacity: 0.6;">구 'XR메타버스교사협회'</p>
+        </div>
+        <p>© 2026 XREA. All rights reserved.</p>
+      </div>
     </div>
+  </footer>
 
-<script>
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQV-02F-qXwS6yLb_XScKqwYj1N0qImwofY2Pyj2tvwnW0i1tl995_BjOfaVHpayppk6YYhqpdLrpa9/pub?output=csv";
-    const CLICK_NAMESPACE = "heycheongju_clicks_v1";
+  <div class="bottom-tabs" aria-label="하단 탭 영역">
+    <div class="bottom-tabs-inner">
+      <button class="tab-btn active" data-tab="a">홈<br />메인 화면</button>
+      <button class="tab-btn" data-tab="b">스터디<br />연수 신청</button>
+      <button class="tab-btn" data-tab="c">인증장비<br />콘텐츠 확인</button>
+      <button class="tab-btn" data-tab="d">가입/문의<br />제휴 요청</button>
+    </div>
+  </div>
 
-    let rawItems = [];
-    let viewItems = [];
+  <div id="infoModal" class="modal-overlay" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h3 id="modalTitle" class="modal-title">상세정보</h3>
+        <p id="modalDesc" class="modal-desc">내용</p>
+        <button class="btn btn-primary" style="width: 100%;" onclick="closeModal()">확인</button>
+    </div>
+  </div>
 
-    function escapeHtml(str) {
-        return String(str || "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
+  <script>
+    // 탭 전환 스크립트
+    const panels = document.querySelectorAll('[data-tab-panel]');
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const switchButtons = document.querySelectorAll('[data-switch-tab]');
+
+    function activateTab(tabName) {
+      panels.forEach((panel) => {
+        panel.classList.toggle('active', panel.dataset.tabPanel === tabName);
+      });
+
+      tabButtons.forEach((button) => {
+        button.classList.toggle('active', button.dataset.tab === tabName);
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function getHash(str) {
-        if (!str) return "none";
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = ((hash << 5) - hash) + str.charCodeAt(i);
-            hash = hash & hash;
-        }
-        return Math.abs(hash).toString(16);
+    tabButtons.forEach((button) => {
+      button.addEventListener('click', () => activateTab(button.dataset.tab));
+    });
+
+    switchButtons.forEach((button) => {
+      button.addEventListener('click', (e) => {
+          e.preventDefault();
+          activateTab(button.dataset.switchTab);
+      });
+    });
+
+    // 모달(팝업) 제어 스크립트
+    function openModal(title, desc) {
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalDesc').innerText = desc;
+        document.getElementById('infoModal').classList.add('show');
     }
 
-    function buildEventKey(item) {
-        return [
-            item.title || "",
-            item.place || "",
-            item.loc || "",
-            item.applyStart || "",
-            item.applyEnd || "",
-            item.date || ""
-        ].join("|");
+    function closeModal() {
+        document.getElementById('infoModal').classList.remove('show');
     }
-
-    function buildCounterName(item, btnType) {
-        return `${getHash(buildEventKey(item))}_${btnType}`;
-    }
-
-    function formatType(type) {
-        if (type === "ongoing") return "사전예약 중";
-        if (type === "always") return "상시/현장접수";
-        if (type === "affiliate") return "제휴/이벤트";
-        return type || "-";
-    }
-
-    function parseCSVToJSON(csv) {
-        const rows = [];
-        let row = [];
-        let curr = "";
-        let insideQuotes = false;
-
-        for (let i = 0; i < csv.length; i++) {
-            const char = csv[i];
-            const nextChar = csv[i + 1];
-
-            if (char === '"' && insideQuotes && nextChar === '"') {
-                curr += '"';
-                i++;
-            } else if (char === '"') {
-                insideQuotes = !insideQuotes;
-            } else if (char === "," && !insideQuotes) {
-                row.push(curr);
-                curr = "";
-            } else if ((char === "\n" || (char === "\r" && nextChar === "\n")) && !insideQuotes) {
-                row.push(curr);
-                rows.push(row);
-                row = [];
-                curr = "";
-                if (char === "\r") i++;
-            } else {
-                curr += char;
-            }
-        }
-
-        if (curr !== "" || row.length > 0) {
-            row.push(curr);
-            rows.push(row);
-        }
-
-        if (rows.length < 2) return [];
-
-        const headers = rows[0].map(h => h.trim().replace(/[\r\n]+/g, ""));
-        const data = [];
-
-        for (let i = 1; i < rows.length; i++) {
-            if (rows[i].length === 1 && rows[i][0].trim() === "") continue;
-
-            const obj = {};
-            for (let j = 0; j < headers.length; j++) {
-                if (headers[j]) {
-                    obj[headers[j]] = rows[i][j]
-                        ? rows[i][j].trim().replace(/[\r\n]+$/, "")
-                        : "";
-                }
-            }
-
-            if (obj.type || obj.title) data.push(obj);
-        }
-
-        return data;
-    }
-
-    async function getCounterValue(counterName) {
-        const url = `https://api.counterapi.dev/v1/${CLICK_NAMESPACE}/${counterName}`;
-
-        try {
-            const res = await fetch(url, { cache: "no-store" });
-            if (!res.ok) return 0;
-
-            const data = await res.json();
-
-            if (typeof data.count === "number") return data.count;
-            if (typeof data.value === "number") return data.value;
-            if (typeof data.data?.count === "number") return data.data.count;
-            if (typeof data.data?.value === "number") return data.data.value;
-
-            return 0;
-        } catch (e) {
-            console.error("카운터 조회 실패:", counterName, e);
-            return 0;
-        }
-    }
-
-    async function enrichItemsWithCounts(items) {
-        const concurrency = 8;
-        const result = [];
-
-        for (let i = 0; i < items.length; i += concurrency) {
-            const chunk = items.slice(i, i + concurrency);
-
-            const chunkResults = await Promise.all(
-                chunk.map(async (item) => {
-                    const detailCounterName = buildCounterName(item, "detail");
-                    const applyCounterName = buildCounterName(item, "apply");
-
-                    const [detailCount, applyCount] = await Promise.all([
-                        getCounterValue(detailCounterName),
-                        getCounterValue(applyCounterName)
-                    ]);
-
-                    return {
-                        ...item,
-                        detailCounterName,
-                        applyCounterName,
-                        detailCount,
-                        applyCount,
-                        totalCount: detailCount + applyCount
-                    };
-                })
-            );
-
-            result.push(...chunkResults);
-        }
-
-        return result;
-    }
-
-    function renderSummary(rows) {
-        const detailSum = rows.reduce((sum, item) => sum + (item.detailCount || 0), 0);
-        const applySum = rows.reduce((sum, item) => sum + (item.applyCount || 0), 0);
-        const totalSum = rows.reduce((sum, item) => sum + (item.totalCount || 0), 0);
-
-        document.getElementById("stat-events").textContent = rows.length.toLocaleString("ko-KR");
-        document.getElementById("stat-detail").textContent = detailSum.toLocaleString("ko-KR");
-        document.getElementById("stat-apply").textContent = applySum.toLocaleString("ko-KR");
-        document.getElementById("stat-total").textContent = totalSum.toLocaleString("ko-KR");
-        document.getElementById("resultCount").textContent = `${rows.length.toLocaleString("ko-KR")}건`;
-    }
-
-    function renderTable(rows) {
-        const tbody = document.getElementById("tableBody");
-
-        if (!rows.length) {
-            tbody.innerHTML = `<tr><td colspan="8" class="empty">표시할 데이터가 없습니다.</td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = rows.map(item => `
-            <tr>
-                <td>
-                    <div class="title-cell">${escapeHtml(item.title || "-")}</div>
-                    <div class="small">${escapeHtml(item.date || "")}</div>
-                </td>
-                <td><span class="badge">${escapeHtml(formatType(item.type))}</span></td>
-                <td>${escapeHtml(item.loc || "-")}</td>
-                <td>${escapeHtml(item.place || "-")}</td>
-                <td>${(item.detailCount || 0).toLocaleString("ko-KR")}</td>
-                <td>${(item.applyCount || 0).toLocaleString("ko-KR")}</td>
-                <td><strong>${(item.totalCount || 0).toLocaleString("ko-KR")}</strong></td>
-                <td>
-                    <div class="small">detail: ${escapeHtml(item.detailCounterName)}</div>
-                    <div class="small">apply: ${escapeHtml(item.applyCounterName)}</div>
-                </td>
-            </tr>
-        `).join("");
-    }
-
-    function applyFilters() {
-        const keyword = document.getElementById("searchInput").value.trim().toLowerCase();
-        const typeValue = document.getElementById("typeFilter").value;
-        const sortValue = document.getElementById("sortFilter").value;
-        const conditionValue = document.getElementById("conditionFilter").value;
-
-        let rows = [...rawItems];
-
-        rows = rows.filter(item => {
-            const matchKeyword =
-                !keyword ||
-                (item.title || "").toLowerCase().includes(keyword) ||
-                (item.place || "").toLowerCase().includes(keyword) ||
-                (item.loc || "").toLowerCase().includes(keyword);
-
-            const matchType = !typeValue || item.type === typeValue;
-
-            const matchCondition =
-                !conditionValue ||
-                (conditionValue === "clicked" && item.totalCount > 0) ||
-                (conditionValue === "unclicked" && item.totalCount === 0);
-
-            return matchKeyword && matchType && matchCondition;
-        });
-
-        rows.sort((a, b) => {
-            if (sortValue === "apply_desc") return b.applyCount - a.applyCount;
-            if (sortValue === "detail_desc") return b.detailCount - a.detailCount;
-            if (sortValue === "title_asc") return (a.title || "").localeCompare((b.title || ""), "ko");
-            return b.totalCount - a.totalCount;
-        });
-
-        viewItems = rows;
-        renderTable(rows);
-        renderSummary(rows);
-    }
-
-    function csvSafe(value) {
-        return `"${String(value || "").replace(/"/g, '""')}"`;
-    }
-
-    function exportCSV() {
-        const headers = [
-            "title",
-            "type",
-            "loc",
-            "place",
-            "detailCount",
-            "applyCount",
-            "totalCount",
-            "detailCounterName",
-            "applyCounterName"
-        ];
-
-        const lines = [
-            headers.join(","),
-            ...viewItems.map(item => [
-                csvSafe(item.title),
-                csvSafe(formatType(item.type)),
-                csvSafe(item.loc),
-                csvSafe(item.place),
-                item.detailCount || 0,
-                item.applyCount || 0,
-                item.totalCount || 0,
-                csvSafe(item.detailCounterName),
-                csvSafe(item.applyCounterName)
-            ].join(","))
-        ];
-
-        const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `heycheongju-click-dashboard-${new Date().toISOString().slice(0, 10)}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-
-    async function loadDashboard() {
-        const tbody = document.getElementById("tableBody");
-        tbody.innerHTML = `<tr><td colspan="8" class="loading">CSV와 카운터를 불러오는 중입니다...</td></tr>`;
-
-        try {
-            const res = await fetch(CSV_URL + "&_t=" + Date.now(), { cache: "no-store" });
-            if (!res.ok) throw new Error("CSV 불러오기 실패");
-
-            const csvText = await res.text();
-            const items = parseCSVToJSON(csvText);
-
-            rawItems = await enrichItemsWithCounts(items);
-            applyFilters();
-
-            document.getElementById("last-updated").textContent =
-                `마지막 새로고침: ${new Date().toLocaleString("ko-KR")}`;
-        } catch (e) {
-            console.error(e);
-            tbody.innerHTML = `<tr><td colspan="8" class="empty danger">대시보드 데이터를 불러오지 못했습니다.</td></tr>`;
-            document.getElementById("last-updated").textContent = "불러오기 실패";
-        }
-    }
-
-    document.getElementById("searchInput").addEventListener("input", applyFilters);
-    document.getElementById("typeFilter").addEventListener("change", applyFilters);
-    document.getElementById("sortFilter").addEventListener("change", applyFilters);
-    document.getElementById("conditionFilter").addEventListener("change", applyFilters);
-    document.getElementById("btn-refresh").addEventListener("click", loadDashboard);
-    document.getElementById("btn-export").addEventListener("click", exportCSV);
-
-    loadDashboard();
-</script>
+  </script>
 </body>
 </html>
